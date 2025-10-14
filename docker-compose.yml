@@ -1,46 +1,49 @@
+version: "3.9"
+
 services:
   db:
     image: postgres:16
-    container_name: fido2-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: ${POSTGRES_DB}
-    volumes:
-      - db_data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  cache:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "no"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
 
   backend:
     build: ./backend
-    container_name: fido2-backend
     restart: unless-stopped
-    depends_on:
-      - db
+    environment:
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/healthz"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
     ports:
-      - "8000:8000"
-
-  frontend:
-    build: ./frontend
-    container_name: fido2-frontend
-    restart: unless-stopped
-    ports:
-      - "8080:80"
-    depends_on:
-      - backend
+      - "8000:8000"  # dev direct access (optional)
 
   gateway:
     image: caddy:2
-    container_name: fido2-gateway
     restart: unless-stopped
+    depends_on:
+      backend:
+        condition: service_healthy
     ports:
-      - "8081:8080"
+      - "8080:8080"   # http://localhost:8080
     volumes:
       - ./gateway/Caddyfile:/etc/caddy/Caddyfile:ro
-    depends_on:
-      - backend
-      - frontend
-
-volumes:
-  db_data:

@@ -1,9 +1,26 @@
 {
-  auto_https off
+  auto_https off  # local dev; prodon kapcsold vissza és állítsd be a domaint/tanúsítványt
 }
 
 :8080 {
-  encode gzip
-  root * /usr/share/caddy
-  file_server
+  encode zstd gzip
+
+  # Biztonsági headerek (finomítható)
+  header {
+    X-Content-Type-Options "nosniff"
+    X-Frame-Options "DENY"
+    Referrer-Policy "no-referrer"
+    Permissions-Policy "publickey-credentials-get=(self)"
+  }
+
+  # API → backend (strip /api prefix)
+  route /api/* {
+    uri strip_prefix /api
+    reverse_proxy backend:8000
+  }
+
+  # (Később ide kerül a Flutter build kiszolgálása is)
+  handle /* {
+    respond "gateway up" 200
+  }
 }
