@@ -13,6 +13,8 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    volumes:
+      - db_data:/var/lib/postgresql/data
 
   cache:
     image: redis:7-alpine
@@ -27,15 +29,26 @@ services:
   backend:
     build: ./backend
     restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
     environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
+      REDIS_URL: ${REDIS_URL}
+      RP_ID: ${RP_ID}
+      RP_NAME: ${RP_NAME}
       ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
+      JWT_SECRET: ${JWT_SECRET}
+      ENV: ${ENV}
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8000/healthz"]
       interval: 10s
       timeout: 3s
       retries: 10
     ports:
-      - "8000:8000"  # dev direct access (optional)
+      - "8000:8000"
 
   gateway:
     image: caddy:2
@@ -44,6 +57,9 @@ services:
       backend:
         condition: service_healthy
     ports:
-      - "8080:8080"   # http://localhost:8080
+      - "8080:8080"
     volumes:
       - ./gateway/Caddyfile:/etc/caddy/Caddyfile:ro
+
+volumes:
+  db_data:
