@@ -1,0 +1,65 @@
+# Python
+*.pyd
+*.log
+.venv/
+venv/
+
+
+# FastAPI / Uvicorn
+*.sqlite3
+*.db
+
+
+# Flutter
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+pubspec.lock
+
+
+# Docker
+**/Dockerfile~
+**/.env
+.env
+.env.*
+
+
+# IDEs / Editors
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+
+# Node / web builds (if any frontend assets)
+node_modules/
+
+
+# Migrations / cache / test
+alembic/*/versions/__pycache__/
+__pycache__/
+pytest_cache/
+.coverage
+*.cover
+*.log
+
+
+# Flutter web build artifacts
+frontend/build/
+frontend/.dart_tool/
+frontend/.flutter-plugins*
+frontend/pubspec.lock
+
+
+# Generated volume data
+volumes/
+
+
+# Ignore secrets or local settings
+secrets.yml
+secret.json
+
+
+.history/

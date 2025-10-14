@@ -1,0 +1,9 @@
+{
+  auto_https off
+}
+
+:8080 {
+  encode gzip
+  root * /usr/share/caddy
+  file_server
+}
