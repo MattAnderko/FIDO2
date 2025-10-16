@@ -4,7 +4,13 @@ from contextlib import contextmanager
 from .config import settings
 
 engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    expire_on_commit=False, 
+    bind=engine,
+)
 
 class Base(DeclarativeBase):
     pass
