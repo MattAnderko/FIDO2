@@ -18,6 +18,7 @@ from fido2.webauthn import (
     AuthenticatorAttachment,
     AttestedCredentialData,
     Aaguid,
+    AuthenticationResponse,
 )
 from fido2.utils import websafe_encode, websafe_decode
 
@@ -107,10 +108,14 @@ async def register_finish(payload: dict):
     state_blob = websafe_decode(s["state"])
     state = cbor2.loads(state_blob)
 
+    raw_id_b64 = payload.get("rawId") or payload.get("id")
+    if not raw_id_b64:
+        raise HTTPException(status_code=400, detail="credential rawId missing")
+    raw_id_bytes = websafe_decode(raw_id_b64)
     # Build RegistrationResponse mapping (standard JSON field names)
     reg_response = {
-        "id": payload["id"],
-        "rawId": websafe_decode(payload.get("rawId") or payload["id"]),
+        "id": raw_id_bytes,
+        "rawId": raw_id_bytes,
         "type": "public-key",
         "response": {
             "clientDataJSON": websafe_decode(payload["response"]["clientDataJSON"]),
@@ -181,11 +186,13 @@ async def login_finish(payload: dict):
     state_blob = websafe_decode(s["state"])
     state = cbor2.loads(state_blob)
 
-    cred_id = websafe_decode(payload.get("rawId") or payload["id"])
-
+    raw_id_b64 = payload.get("rawId") or payload.get("id")
+    if not raw_id_b64:
+        raise HTTPException(status_code=400, detail="credential rawId missing")
+    cred_id = websafe_decode(raw_id_b64)
     # Build AuthenticationResponse mapping (standard JSON field names)
     authn_response = {
-        "id": payload["id"],
+        "id": cred_id,
         "rawId": cred_id,
         "type": "public-key",
         "response": {
@@ -206,10 +213,12 @@ async def login_finish(payload: dict):
         attested = _attested_from_db(cred)
 
         # v2.0: authenticate_complete(state, credentials=[AttestedCredentialData], response)
-        result = server.authenticate_complete(state, [attested], authn_response)
+        server.authenticate_complete(state, [attested], authn_response)
+
+        authn = AuthenticationResponse.from_dict(authn_response)
 
         # Update sign counter and last used timestamp
-        cred.sign_count = result.counter
+        cred.sign_count = authn.response.authenticator_data.counter
         cred.last_used_at = datetime.datetime.utcnow()
 
         user = db.query(User).filter(User.id == cred.user_id).one()

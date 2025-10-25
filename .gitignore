@@ -16,6 +16,11 @@ build/
 .flutter-plugins
 .flutter-plugins-dependencies
 .packages
+android/
+ios/
+macos/
+linux/
+windows/
 pubspec.lock
 
 
@@ -27,7 +32,6 @@ pubspec.lock
 
 
 # IDEs / Editors
-.vscode/
 .idea/
 .DS_Store
 Thumbs.db

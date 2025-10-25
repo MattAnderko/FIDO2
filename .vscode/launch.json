@@ -1,0 +1,35 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Flutter Web (Chrome, proxied by Caddy)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/frontend",
+      "program": "lib/main.dart",
+      "deviceId": "chrome",
+      "toolArgs": [
+        "--web-hostname",
+        "localhost",
+        "--web-port",
+        "8080"
+      ],
+      "preLaunchTask": "docker: up backend stack"
+    },
+    {
+      "name": "Flutter Web (headless web-server)",
+      "type": "dart",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/frontend",
+      "program": "lib/main.dart",
+      "deviceId": "web-server",
+      "toolArgs": [
+        "--web-hostname",
+        "localhost",
+        "--web-port",
+        "8080"
+      ],
+      "preLaunchTask": "docker: up backend stack"
+    }
+  ]
+}

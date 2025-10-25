@@ -4,6 +4,21 @@ const b64uToBuf = (b64u) =>
 const bufToB64u = (buf) =>
   btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
+const withPublicKey = (opts) => {
+  if (!opts) throw new Error('WebAuthn options payload missing.');
+  return opts.publicKey ? opts : { publicKey: opts };
+};
+
+const ensureWebauthnSupport = () => {
+  if (
+    !navigator.credentials ||
+    typeof navigator.credentials.create !== 'function' ||
+    typeof navigator.credentials.get !== 'function'
+  ) {
+    throw new Error('WebAuthn navigator.credentials API unavailable (https or localhost required).');
+  }
+};
+
 function mapCreateOptions(opts) {
   const o = JSON.parse(JSON.stringify(opts));
   o.publicKey.challenge = b64uToBuf(o.publicKey.challenge);
@@ -26,30 +41,50 @@ function mapGetOptions(opts) {
 async function webauthnCreate(options) {
   const mapped = mapCreateOptions(options);
   const cred = await navigator.credentials.create(mapped);
+  const id = bufToB64u(cred.rawId);
   return {
-    id: cred.id,
+    id,
     type: cred.type,
-    rawId: bufToB64u(cred.rawId),
+    rawId: id,
     response: {
       attestationObject: bufToB64u(cred.response.attestationObject),
       clientDataJSON: bufToB64u(cred.response.clientDataJSON),
     },
-    transports: cred.response.getTransports ? cred.response.getTransports() : [],
+    transports: typeof cred.getTransports === 'function' ? cred.getTransports() : [],
+    clientExtensionResults: typeof cred.getClientExtensionResults === 'function' ? cred.getClientExtensionResults() : {},
   };
 }
 
 async function webauthnGet(options) {
   const mapped = mapGetOptions(options);
   const assertion = await navigator.credentials.get(mapped);
+  const id = bufToB64u(assertion.rawId);
   return {
-    id: assertion.id,
+    id,
     type: assertion.type,
-    rawId: bufToB64u(assertion.rawId),
+    rawId: id,
     response: {
       authenticatorData: bufToB64u(assertion.response.authenticatorData),
       clientDataJSON: bufToB64u(assertion.response.clientDataJSON),
       signature: bufToB64u(assertion.response.signature),
       userHandle: assertion.response.userHandle ? bufToB64u(assertion.response.userHandle) : null,
     },
+    clientExtensionResults:
+      typeof assertion.getClientExtensionResults === 'function' ? assertion.getClientExtensionResults() : {},
   };
 }
+
+window.webauthn = {
+  async createFromJson(optionsJson) {
+    ensureWebauthnSupport();
+    const options = withPublicKey(JSON.parse(optionsJson));
+    const credential = await webauthnCreate(options);
+    return JSON.stringify(credential);
+  },
+  async getFromJson(optionsJson) {
+    ensureWebauthnSupport();
+    const options = withPublicKey(JSON.parse(optionsJson));
+    const assertion = await webauthnGet(options);
+    return JSON.stringify(assertion);
+  },
+};

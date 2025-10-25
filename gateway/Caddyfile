@@ -12,13 +12,11 @@
     Permissions-Policy "publickey-credentials-get=(self)"
   }
 
-  # API FIRST – anything under /api goes to the backend AS-IS (no stripping)
   handle /api/* {
     reverse_proxy backend:8000
   }
 
-  # Everything else → Flutter frontend (nginx)
   handle {
-    reverse_proxy frontend:80
+    reverse_proxy {$FRONTEND_UPSTREAM}
   }
 }
