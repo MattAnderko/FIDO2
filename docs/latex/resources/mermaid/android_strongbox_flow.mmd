@@ -1,0 +1,12 @@
+flowchart LR
+  subgraph Client
+    CM[Credential Manager]
+    KS[Android Keystore]
+  end
+  subgraph Hardware Isolation
+    SB[(StrongBox KeyMint)]
+  end
+  CM -->|WebAuthn ops| KS
+  KS -->|KeyGen/Use| SB
+  SB -->|Attestation chain| CM
+  CM --> RP[Server / RP]

@@ -1,0 +1,12 @@
+sequenceDiagram
+  autonumber
+  participant U as User
+  participant B as Browser/Platform
+  participant A as Authenticator
+  participant RP as Relying Party
+
+  RP->>B: get() options (challenge, rpId, allow list)
+  B->>A: CTAP2 getAssertion
+  A-->>B: assertion (sig, flags, counter)
+  B-->>RP: clientDataJSON + authData + signature
+  RP-->>RP: Verify origin, rpId, signature, counter

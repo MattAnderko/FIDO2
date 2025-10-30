@@ -1,0 +1,15 @@
+sequenceDiagram
+  autonumber
+  participant A as Attacker
+  participant IdP as Identity Provider
+  participant D as Victim Device (Push App)
+  participant U as User
+
+  A->>IdP: Credential stuffing / password reuse
+  IdP-->>D: MFA Push Prompt
+  loop Repeated prompts
+    IdP-->>D: Push notification
+  end
+  U->>D: Accidental Approve (fatigue)
+  D-->>IdP: Approval signal
+  IdP-->>A: Session issued

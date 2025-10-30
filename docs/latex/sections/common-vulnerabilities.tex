@@ -1,11 +1,11 @@
 
 
-\section{Common Authentication Vulnerabilities}
+\section{Common Authentication Vulnerabilities}\label{sec:common-vulnerabilities}
 Bad actors find the most creative ways to attack authentication systems, these are called attack vectors. The goal of this section is to outline how the vulnerabilities work, which the paper will address in later sections, and also to shine a ligh on why traditional password or even basic MFA schemes struggle against them.s
 
 
 \subsection{Weak Passwords and Brute-Force Attacks}
-Users often choose simple passwords, making them easy targets for brute-force attacks \cite{Ma2022ProspectsPassword}. A simple brute force attack tries to crack the user's password by trying random character combinations. Rate limiting and sufficient password length makes the attack redundant. A dictionary attack is a more sophisticated version of a brute force attack, where attackers use common wordlists, lists of frequenly used passwords or they systematically guess combinations to find the password. In the case of brute force not cryptographic weaknesses, but bad password hygiene and the site's lack of password complexity enforcement leads to the compromise,.
+Users often choose simple passwords, making them easy targets for brute-force attacks \cite{Ma2022ProspectsPassword}. A simple brute-force attack tries to crack the user's password by trying random character combinations. Rate limiting and sufficient password length makes the attack redundant. A dictionary attack is a more sophisticated version of a brute-force attack, where attackers use common wordlists, lists of frequenly used passwords or they systematically guess combinations to find the password. In the case of brute-force not cryptographic weaknesses, but bad password hygiene and the site's lack of password complexity enforcement leads to the compromise,.
 
 
 \subsection{Credential Stuffing and Password Reuse}
@@ -22,7 +22,7 @@ Phishing deceives users into revealing credentials on fake websites, that mimic 
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/phishing-otp.png}
+\includegraphics[width=\columnwidth]{resources/images/phishing_otp_relay.png}
 \caption{Phishing with OTP relay}
 \end{figure}
 
@@ -37,6 +37,6 @@ Push-based MFA can be exploited by flooding users with repeated prompts until th
 
 \begin{figure}[htbp]
 \centering
-\includegraphics[width=\linewidth]{figures/push-fatigue.png}
+\includegraphics[width=\columnwidth]{resources/images/push_fatigue_attack.png}
 \caption{Push fatigue attack sequence}
 \end{figure}

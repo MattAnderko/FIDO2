@@ -1,0 +1,25 @@
+{
+  "theme": "base",
+  "themeVariables": {
+    "fontFamily": "Times New Roman, Times, serif",
+    "fontSize": "25px",
+    "primaryColor": "#ffffff",
+    "primaryTextColor": "#000000",
+    "primaryBorderColor": "#000000",
+    "lineColor": "#000000",
+    "tertiaryColor": "#f2f2f2",
+    "clusterBkg": "#f7f7f7",
+    "clusterBorder": "#000000",
+    "edgeLabelBackground":"#ffffff"
+  },
+  "backgroundColor": "transparent",
+  "sequence": {
+    "mirrorActors": false,
+    "rightAngles": true,
+    "wrap": true
+  },
+  "flowchart": {
+    "htmlLabels": false,
+    "wrap": true
+  }
+}
