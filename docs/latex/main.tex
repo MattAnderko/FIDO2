@@ -1,0 +1,53 @@
+\documentclass[conference]{IEEEtran}
+
+% --- Packages ---
+
+\usepackage{graphicx}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{times}
+\hypersetup{hidelinks}
+
+% --- Document ---
+\begin{document}
+
+\title{A Comparative Empirical Study of FIDO2 and Its Predecessors}
+
+\author{
+\IEEEauthorblockN{Anderko Máté}
+\IEEEauthorblockA{Óbuda University \\ mate.anderko@stud.uni-obuda.hu}
+}
+
+\maketitle
+
+\begin{abstract}
+The FIDO2 standard, introduced by the FIDO Alliance and the World Wide Web Consortium (W3C) in 2018, it has been hailed as the "Kingslayer of User Authentication".
+This paper presents the implementation of a FIDO2 + WebAuthn authentication system and shows an analysis on different user authentication philosophies
+The analysis assesses a FIDO2, a 2FA and a password only system on their resistance to common security threats using the STRIDE threat modeling framework and evaluates performance based on latency, memory usage, and computational overhead.
+The objective is to determine how adopting FIDO2 influences the security, usability, and system resource requirements of information systems.
+\end{abstract}
+
+\begin{IEEEkeywords}
+FIDO2, WebAuthn, Passkeys, Passwordless authentication, Multi-factor authentication, STRIDE, Performance
+\end{IEEEkeywords}
+
+\input{sections/introduction}
+
+\input{sections/similar-works}
+
+\input{sections/common-vulnerabilities}
+
+\input{sections/how-fido2-works}
+
+\input{sections/stride-method}
+
+\input{sections/implementation}
+
+\input{sections/performance-tests}
+
+\bibliographystyle{IEEEtran}
+\bibliography{bib/references}
+
+\end{document}

@@ -1,0 +1,22 @@
+\section{Similar and Related Work}\label{sec:related}
+
+This section reviews research on the security, usability, and adoption of FIDO2, also shows a comparison with this here work.
+
+\subsection{Formal and Theoretical Analyses}
+Barbosa and their team \cite{barbosa2021provable} offers a formal model of FIDO2 and, through theoretical analysis, show resistance to credential-phishing and replay attacks. In contrast, the present work examines a deployed FIDO2 stack with STRIDE, emphasizing practical security implications and performance (latency, memory, compute).
+
+
+\subsection{Empirical and Usability Studies}
+Lyastani and their team \cite{lyastani2020kingslayer} created an empirically FIDO2's usability analyses. The study shows significant usability gains and phishing resistance compared to passwords and 2FA. Their work relied on user studies and perception metrics rather than system-level measurements.
+
+Unlike these human-centered, behavioral studies, this work isolates the technical performance and security aspects of FIDO2.
+
+\subsection{Positioning of This Work}
+Key contributions:
+\begin{enumerate}
+    \item Operational implementation of FIDO2/WebAuthn alongside password-only and 2FA baselines.
+    \item Structured STRIDE analysis, grounded in Barbosa’s theoretical model.
+    \item Empirical performance results—latency, memory footprint, computational load—that complement usability-centric studies (e.g., Lyastani).
+\end{enumerate}
+
+Unlike work centered on formal guarantees or user experience, this study examines how adopting FIDO2 shifts real-world security posture and runtime efficiency.
