@@ -14,29 +14,6 @@ The STRIDE threat modeling framework helps to group real-world attacks into six 
   \item \textbf{Elevation of Privilege}: when someone gets more access than they should
 \end{itemize}
 
-Each vulnerability from Section~\ref{sec:common-vulnerabilities} fits one or more of these categories. Table~\ref{tab:stride-vuln-matrix} shows which threat is mapped where, and what to expect from password-only, 2FA, and FIDO2-based systems.
-
-\begin{table}[H]
-\centering
-\caption{STRIDE Categories, Real-World Vulnerabilities, and Expected Behavior}
-\label{tab:stride-vuln-matrix}
-\begin{tabular}{|p{2.3cm}|p{4.3cm}|p{3.3cm}|p{3.3cm}|p{3.3cm}|}
-\hline
-\textbf{STRIDE Category} & \textbf{Mapped Vulnerability} & \textbf{Password-only} & \textbf{2FA} & \textbf{FIDO2/WebAuthn} \\
-\hline
-Spoofing & Phishing and OTP relay attacks & Easy to spoof if password is stolen or phished & OTP relay attacks can still trick users & Origin check and public-key signatures prevent spoofing \\
-\hline
-Tampering & Adversary-in-the-middle modifying login flow & No strong protection if TLS fails & Relayed OTPs or injected prompts possible & Signed challenge-response blocks message tampering \\
-\hline
-Repudiation & No way to prove who logged in & Anyone with the password can log in & 2FA logs may help but are weak proof & Authenticator signs each login, tied to device and origin \\
-\hline
-Information Disclosure & Password reuse and data breaches & Password leaks are common and reused across sites & OTP seeds and SMS codes can be stolen & No password or shared secret stored or sent \\
-\hline
-Denial of Service & Push fatigue and SIM swap & Lockout by brute force or repeated failures & Flood of OTP or push requests can lock out users & Brute-force blocked by design, backup keys help recovery \\
-\hline
-Elevation of Privilege & Use of weak or reused admin credentials & Admin access can be guessed or reused & OTP can be phished from high-priv users & High-priv accounts tied to secure device credentials \\
-\hline
-\end{tabular}
-\end{table}
+Each vulnerability from Section~\ref{sec:common-vulnerabilities} fits one or more of these categories. Table~\ref{tab:stride-vuln-matrix} (see Section~\ref{sec:tables}) shows which threat is mapped where, and what to expect from password-only, 2FA, and FIDO2-based systems.
 
 The STRIDE mapping helps compare which attack types are stopped or remain possible in each authentication setup. This forms the basis of the analysis in Section~\ref{sec:stride-analysis}, where each system’s real threat resistance is examined in more detail.

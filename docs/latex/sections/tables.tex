@@ -1,0 +1,53 @@
+\section{Tables}\label{sec:tables}
+
+This section contains all tables referenced throughout the document.
+
+\begin{table*}[t]
+\centering
+\small
+\caption{Backend Python packages and their roles}
+\label{tab:backend-packages}
+\begin{tabular}{p{2.5cm}p{11cm}}
+  \toprule
+  Package & Role \\
+  \midrule
+  `fastapi` & Web framework providing REST API endpoints and request routing \\
+  `uvicorn` & ASGI server running the FastAPI application \\
+  `fido2` & WebAuthn protocol implementation for credential registration and authentication \\
+  `sqlalchemy` & ORM for database operations and model definitions \\
+  `psycopg2-binary` & PostgreSQL database adapter \\
+  `pydantic` & Data validation and settings management \\
+  `redis` & State store for temporary challenge data \\
+  `pyjwt` & JWT token generation and verification \\
+  `cbor2` & CBOR encoding/decoding for FIDO2 binary data \\
+  `bcrypt` & Password hashing with configurable work factor \\
+  `pyotp` & TOTP code generation and verification \\
+  `qrcode` & QR code generation for TOTP secret enrollment \\
+  \bottomrule
+\end{tabular}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\small
+\caption{STRIDE Categories, Real-World Vulnerabilities, and Expected Behavior}
+\label{tab:stride-vuln-matrix}
+\begin{tabular}{|p{2cm}|p{3.5cm}|p{2.8cm}|p{2.8cm}|p{2.8cm}|}
+\hline
+\textbf{STRIDE Category} & \textbf{Mapped Vulnerability} & \textbf{Password-only} & \textbf{2FA} & \textbf{FIDO2/WebAuthn} \\
+\hline
+Spoofing & Phishing and OTP relay attacks & Easy to spoof if password is stolen or phished & OTP relay attacks can still trick users & Origin check and public-key signatures prevent spoofing \\
+\hline
+Tampering & Adversary-in-the-middle modifying login flow & No strong protection if TLS fails & Relayed OTPs or injected prompts possible & Signed challenge-response blocks message tampering \\
+\hline
+Repudiation & No way to prove who logged in & Anyone with the password can log in & 2FA logs may help but are weak proof & Authenticator signs each login, tied to device and origin \\
+\hline
+Information Disclosure & Password reuse and data breaches & Password leaks are common and reused across sites & OTP seeds and SMS codes can be stolen & No password or shared secret stored or sent \\
+\hline
+Denial of Service & Push fatigue and SIM swap & Lockout by brute force or repeated failures & Flood of OTP or push requests can lock out users & Brute-force blocked by design, backup keys help recovery \\
+\hline
+Elevation of Privilege & Use of weak or reused admin credentials & Admin access can be guessed or reused & OTP can be phished from high-priv users & High-priv accounts tied to secure device credentials \\
+\hline
+\end{tabular}
+\end{table*}
+

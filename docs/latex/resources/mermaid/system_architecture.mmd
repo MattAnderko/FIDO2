@@ -1,0 +1,47 @@
+flowchart LR
+  subgraph Client[Browser Flutter Web App]
+    UI[UI Widgets]
+    State[Home State Controller]
+    JS[Custom webauthn js]
+  end
+
+  subgraph Authenticator[Platform Authenticators]
+    Platform[Touch ID Windows Hello]
+    SecurityKey[Roaming Security Key]
+  end
+
+  subgraph Proxy[Caddy Reverse Proxy]
+    RouteAPI[/Route api to FastAPI/]
+    RouteSPA[/Serve root to Flutter build/]
+  end
+
+  subgraph Backend[FastAPI Backend]
+    RouterCore[/core router/]
+    RouterFido[/fido router/]
+    RouterPassword[/password router/]
+    RouterTotp[/totp router/]
+    CredentialHelpers[credential helpers]
+  end
+
+  subgraph Services[Supporting Services]
+    Redis[(Redis state store)]
+    Postgres[(PostgreSQL database)]
+  end
+
+  UI --> State
+  State --> JS
+  JS --> Platform
+  JS --> SecurityKey
+
+  UI --> Proxy
+  State --> Proxy
+
+  Proxy --> Backend
+  Proxy --> UI
+
+  RouterFido --> CredentialHelpers
+  RouterPassword --> CredentialHelpers
+  RouterTotp --> CredentialHelpers
+
+  Backend --> Redis
+  Backend --> Postgres

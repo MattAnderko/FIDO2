@@ -1,12 +1,12 @@
 sequenceDiagram
   autonumber
   participant U as User
-  participant B as Browser/Platform
+  participant B as Browser Platform
   participant A as Authenticator
   participant RP as Relying Party
 
-  RP->>B: create() options (challenge, rpId, params)
+  RP->>B: provide options challenge rpId params
   B->>A: CTAP2 makeCredential
-  A-->>B: attestationObject, publicKey
-  B-->>RP: clientDataJSON + attestationObject
-  RP-->>RP: Verify attestation, store public key
+  A-->>B: attestation object public key
+  B-->>RP: clientDataJSON attestation
+  RP-->>RP: verify attestation store public key 

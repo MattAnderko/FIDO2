@@ -30,19 +30,6 @@ FIDO2 provides an phishing-resistant, origin-bound public-key authentication by 
     \item Attestation enables enforcement of device-class policy, lower class untrusted devices can be blocked.
 \end{itemize}
 
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\columnwidth]{resources/images/registration.png}
-\caption{Registration sequence}
-\end{figure}
-
-\begin{figure}[htbp]
-\centering
-\includegraphics[width=\columnwidth]{resources/images/authentication.png}
-\caption{Authentication sequence}
-\end{figure}
-
-
 \subsection{Real-World example}
 This example tries to convey how Android devices keep the data secure working with the FIDO2 ecosystem.
 On Android, passkeys and cryptographic keys are managed through Credential Manager and the Android Keystore. Where available, StrongBox places KeyMint in a discrete secure element so that keys are generated and stored within a dedicated secure processor rather than solely in the TEE. Private key material is non-exportable and invocable only via Keystore operations under enforced user-authentication and policy.
@@ -50,7 +37,7 @@ On Android, passkeys and cryptographic keys are managed through Credential Manag
 \subsubsection{StrongBox isolation}
 StrongBox uses KeyMint in a separate secure chip. This chip has its own CPU,RAM and secure storage, completely isolating it from the mobile device, thus making it virtually impossible for bad-actors to access the private key stored here. I enables hardware attestation so servers can verify that keys are hardware-backed on a genuine device.
 
-\subsubsection{Illustrative Flow}
+\subsubsection{Example Flow}
 \begin{itemize}
   \item The registration process begins through the Credential Manager (WebAuthn).
   \item The Keystore requests a hardware-backed key; on devices with StrongBox, the key pair is generated within the StrongBox KeyMint and marked as non-exportable.

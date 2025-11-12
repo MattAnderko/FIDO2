@@ -5,8 +5,10 @@ from .db import db_ping, Base, engine
 from . import models  # register models
 from .routes import core
 from .routes import fido
+from .routes import password
+from .routes import totp
 
-app = FastAPI(title="FIDO2 Backend", version="0.0.4")
+app = FastAPI(title="FIDO2 Backend", version="0.0.5")
 
 app.add_middleware(
     CORSMiddleware,
@@ -30,7 +32,9 @@ def healthz_alias():
 
 app.include_router(core.router)
 app.include_router(fido.router)
+app.include_router(password.router)
+app.include_router(totp.router)
 
 @app.get("/")
 def root():
-    return {"service": "backend", "version": "0.0.4"}
+    return {"service": "backend", "version": "0.0.5"}

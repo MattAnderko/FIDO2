@@ -1,1 +1,8 @@
 \section{Implementation}\label{sec:implementation}
+This section documents the packages used and how components interact in the prototype.
+
+\subsection{Backend Packages}
+The backend is built with FastAPI and uses the packages listed in Table~\ref{tab:backend-packages} (see Section~\ref{sec:tables}). FastAPI provides asynchronous request handling and automatic OpenAPI documentation. The `fido2` library (v2.0) handles WebAuthn protocol operations, including challenge generation, attestation verification, and assertion validation. SQLAlchemy serves as the ORM layer connecting to PostgreSQL, while Redis stores ephemeral state such as WebAuthn challenges and password reset tokens.
+
+\subsection{Component Interactions}
+The backend routes HTTP requests through dedicated routers (`fido`, `password`, `totp`) mounted under `/api/v1`. Each router queries the unified `Credential` model via SQLAlchemy, which persists data to PostgreSQL. Ephemeral state (WebAuthn challenges, password reset tokens) is stored in Redis with namespaced keys. Successful authentication returns a JWT token issued by `pyjwt` for session management.

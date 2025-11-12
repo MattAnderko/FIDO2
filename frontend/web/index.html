@@ -6,7 +6,12 @@
     <meta name="theme-color" content="#ffffff" />
     <title>FIDO2 Demo</title>
     <script src="webauthn.js"></script>
-    
+    <script>
+      // Ensure webauthn is available before Flutter loads
+      if (typeof window.webauthn === 'undefined') {
+        console.error('webauthn.js failed to load');
+      }
+    </script>
   </head>
   <body>
     <script src="flutter_bootstrap.js" async></script>

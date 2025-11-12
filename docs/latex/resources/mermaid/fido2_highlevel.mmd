@@ -1,9 +1,9 @@
 flowchart TD
   RP[Relying Party]
-  C[Client/Platform]
+  C[Client Platform]
   Auth[Authenticator]
-  RP -->|Options (challenge, rpId)| C
+  RP -->|Options challenge rpId| C
   C -->|CTAP2| Auth
-  Auth -->|Attestation/Assertion| C
-  C -->|clientDataJSON + authData| RP
-  RP -->|Verify & Decision| RP
+  Auth -->|Attestation assertion| C
+  C -->|clientDataJSON and authData| RP
+  RP -->|Verify and decision| RP

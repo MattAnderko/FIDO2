@@ -3,6 +3,7 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from ..db import session_scope, Base, engine
 from ..models import User, Credential
+from ..credential_helpers import get_fido2_credentials
 from ..config import settings
 from ..redis_store import set_state, pop_state
 from ..security import issue_token
@@ -75,7 +76,9 @@ async def register_start(payload: dict):
             db.flush()  # get user.id
 
         uid = int(user.id)  # capture before session closes
-        existing_desc = [_cred_descriptor_from_db(c) for c in user.credentials]
+        # Get only FIDO2 credentials
+        fido2_creds = get_fido2_credentials(db, user)
+        existing_desc = [_cred_descriptor_from_db(c) for c in fido2_creds]
 
     user_entity = PublicKeyCredentialUserEntity(id=str(uid).encode(), name=username, display_name=display_name)
 
@@ -138,6 +141,7 @@ async def register_finish(payload: dict):
 
         cred = Credential(
             user_id=user.id,
+            credential_type='fido2',
             credential_id=auth_data.credential_data.credential_id,
             public_key=public_key_cbor,
             sign_count=auth_data.counter,
@@ -157,10 +161,15 @@ async def login_start(payload: dict):
 
     with session_scope() as db:
         user = get_user(db, username)
-        if not user or not user.credentials:
-            raise HTTPException(status_code=404, detail="user or credentials not found")
+        if not user:
+            raise HTTPException(status_code=404, detail="user not found")
 
-        allowed_desc = [_cred_descriptor_from_db(c) for c in user.credentials]
+        # Get only FIDO2 credentials
+        fido2_creds = get_fido2_credentials(db, user)
+        if not fido2_creds:
+            raise HTTPException(status_code=404, detail="FIDO2 credentials not found")
+
+        allowed_desc = [_cred_descriptor_from_db(c) for c in fido2_creds]
 
     # fido2 v2.0: authenticate_begin(credentials=..., user_verification=...)
     request_options, state = server.authenticate_begin(
@@ -206,9 +215,12 @@ async def login_finish(payload: dict):
 
     # Load the single matching credential from DB and create AttestedCredentialData
     with session_scope() as db:
-        cred = db.query(Credential).filter(Credential.credential_id == cred_id).one_or_none()
+        cred = db.query(Credential).filter(
+            Credential.credential_id == cred_id,
+            Credential.credential_type == 'fido2'
+        ).one_or_none()
         if not cred:
-            raise HTTPException(status_code=404, detail="credential not found")
+            raise HTTPException(status_code=404, detail="FIDO2 credential not found")
 
         attested = _attested_from_db(cred)
 

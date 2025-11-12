@@ -1,15 +1,15 @@
 sequenceDiagram
   autonumber
   participant V as Victim
-  participant P as Phishing Site (AitM)
+  participant P as Phishing Site AitM
   participant RP as Legitimate RP
-  participant OTP as SMS/Email OTP
+  participant OTP as OTP Service
 
-  V->>P: Enter username & password
-  P->>RP: Relay credentials
-  RP-->>OTP: Send one-time code
-  P-->>V: Prompt for OTP (fake)
-  V->>P: Enter OTP
-  P->>RP: Use OTP to finish login
-  RP-->>P: Session/Cookies
-  P-->>V: Fake success or redirect
+  V->>P: enter username password
+  P->>RP: relay credentials
+  RP-->>OTP: send one time code
+  P-->>V: prompt for otp
+  V->>P: enter otp
+  P->>RP: finish login using otp
+  RP-->>P: session cookies
+  P-->>V: fake success redirect
