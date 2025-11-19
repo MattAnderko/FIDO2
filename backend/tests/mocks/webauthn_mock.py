@@ -22,7 +22,8 @@ class MockAuthenticator:
     For latency measurement purposes, we simulate the structure and timing.
     """
     
-    def __init__(self, rp_id: str = "localhost", authenticator_delay_ms: int = 100):
+    def __init__(self, rp_id: str = "localhost", authenticator_delay_ms: int = 100, 
+                 allow_malicious_origin: bool = False):
         """
         Initialize mock authenticator.
         
@@ -33,9 +34,12 @@ class MockAuthenticator:
                 (based on empirical observations: USB security keys and platform 
                 authenticators typically require 50-200ms for key generation/signing,
                 user verification, and browser communication)
+            allow_malicious_origin: If True, allows responses with different RP IDs
+                (for testing origin binding - should be False for normal use)
         """
         self.rp_id = rp_id
         self.authenticator_delay_ms = authenticator_delay_ms
+        self.allow_malicious_origin = allow_malicious_origin
         self.credentials: Dict[bytes, Dict[str, Any]] = {}  # credential_id -> credential data
     
     def simulate_delay(self):
@@ -43,12 +47,14 @@ class MockAuthenticator:
         if self.authenticator_delay_ms > 0:
             time.sleep(self.authenticator_delay_ms / 1000.0)
     
-    def create_credential(self, options: Dict[str, Any]) -> Dict[str, Any]:
+    def create_credential(self, options: Dict[str, Any], override_rp_id: Optional[str] = None) -> Dict[str, Any]:
         """
         Simulate WebAuthn credential creation (registration).
         
         Args:
             options: PublicKeyCredentialCreationOptions from server (as dict)
+            override_rp_id: Optional RP ID to use instead of self.rp_id
+                (for testing origin binding - only works if allow_malicious_origin=True)
         
         Returns:
             Registration response compatible with WebAuthn API
@@ -64,8 +70,11 @@ class MockAuthenticator:
         else:
             challenge_bytes = challenge
         
+        # Determine RP ID to use
+        rp_id_to_use = override_rp_id if (override_rp_id and self.allow_malicious_origin) else self.rp_id
+        
         # Create client data
-        origin = f"https://{self.rp_id}"
+        origin = f"https://{rp_id_to_use}"
         client_data = CollectedClientData.create(
             type="webauthn.create",
             challenge=challenge_bytes,
@@ -86,7 +95,7 @@ class MockAuthenticator:
         
         # Create authenticator data (simplified structure)
         # RP ID hash (32 bytes) + flags (1 byte) + sign count (4 bytes) + AAGUID (16 bytes) + credential
-        rp_id_hash = hashlib.sha256(self.rp_id.encode()).digest()
+        rp_id_hash = hashlib.sha256(rp_id_to_use.encode()).digest()
         flags = 0x41  # User present + Attested credential data
         sign_count = 0
         
@@ -152,7 +161,8 @@ class MockAuthenticator:
     def get_assertion(
         self,
         options: Dict[str, Any],
-        credential_id: Optional[bytes] = None
+        credential_id: Optional[bytes] = None,
+        override_rp_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Simulate WebAuthn assertion (authentication).
@@ -160,6 +170,8 @@ class MockAuthenticator:
         Args:
             options: PublicKeyCredentialRequestOptions from server (as dict)
             credential_id: Optional credential ID to use
+            override_rp_id: Optional RP ID to use instead of self.rp_id
+                (for testing origin binding - only works if allow_malicious_origin=True)
         
         Returns:
             Authentication response compatible with WebAuthn API
@@ -185,8 +197,11 @@ class MockAuthenticator:
         
         cred_data = self.credentials[credential_id]
         
+        # Determine RP ID to use
+        rp_id_to_use = override_rp_id if (override_rp_id and self.allow_malicious_origin) else self.rp_id
+        
         # Create client data
-        origin = f"https://{self.rp_id}"
+        origin = f"https://{rp_id_to_use}"
         client_data = CollectedClientData.create(
             type="webauthn.get",
             challenge=challenge_bytes,
@@ -199,7 +214,7 @@ class MockAuthenticator:
         # Create authenticator data
         import hashlib
         
-        rp_id_hash = hashlib.sha256(self.rp_id.encode()).digest()
+        rp_id_hash = hashlib.sha256(rp_id_to_use.encode()).digest()
         flags = 0x05  # User present + User verified
         sign_count = cred_data["sign_count"]
         

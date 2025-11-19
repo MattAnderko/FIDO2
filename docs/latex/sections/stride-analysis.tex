@@ -1,0 +1,57 @@
+\section{STRIDE Analysis}\label{sec:stride-analysis}
+
+This section provides a detailed analysis of how password-only, TOTP-based 2FA, and FIDO2/WebAuthn authentication methods address each STRIDE threat category. The analysis is based on the threat mapping presented in Table~\ref{tab:stride-vuln-matrix} and evaluates the practical security posture of each authentication approach.
+
+\subsection{Spoofing}
+
+\textbf{Password-only:} Password-based systems are highly vulnerable to spoofing attacks. Phishing attacks can easily capture user credentials, and stolen passwords can be reused immediately by attackers. The lack of origin binding means that even if a user enters their password on a legitimate site, a compromised or malicious site can capture and replay the credentials elsewhere.
+
+\textbf{TOTP/2FA:} TOTP provides limited protection against spoofing. While an attacker cannot log in with just a password, OTP relay attacks allow real-time capture of one-time codes through adversary-in-the-middle proxies. The attacker can proxy the login flow, capture the OTP code, and immediately use it to authenticate, effectively bypassing the second factor.
+
+\textbf{FIDO2/WebAuthn:} FIDO2 provides strong protection against spoofing through origin binding and public-key cryptography. Each authentication requires a cryptographic signature tied to the specific origin (domain), preventing credentials from being used on malicious sites. The authenticator verifies the origin before signing, making phishing attacks ineffective even if users are tricked into interacting with fake sites.
+
+\subsection{Tampering}
+
+\textbf{Password-only:} Password systems offer no protection against message tampering beyond TLS. If TLS is compromised or misconfigured, an attacker can modify login requests or responses. There is no cryptographic integrity protection for the authentication flow itself.
+
+\textbf{TOTP/2FA:} Similar to password-only, TOTP relies primarily on TLS for tampering protection. While the OTP code itself cannot be easily modified (it's a time-based value), the authentication flow can be intercepted and modified by an adversary-in-the-middle, allowing OTP relay attacks.
+
+\textbf{FIDO2/WebAuthn:} FIDO2's challenge-response mechanism provides strong tampering protection. Each authentication includes a server-generated challenge that is cryptographically signed by the authenticator. Any modification to the challenge or response invalidates the signature, preventing tampering attacks even if TLS is compromised.
+
+\subsection{Repudiation}
+
+\textbf{Password-only:} Password systems provide weak non-repudiation. Anyone with the password can authenticate, and there is no cryptographic proof linking a specific login to a particular device or authenticator. Logs can be manipulated, and password sharing is undetectable.
+
+\textbf{TOTP/2FA:} TOTP provides moderate non-repudiation through audit logs of OTP usage, but these logs can be falsified. The OTP code itself doesn't provide cryptographic proof of which device generated it, making it difficult to prove who actually performed the authentication.
+
+\textbf{FIDO2/WebAuthn:} FIDO2 provides strong non-repudiation through cryptographic signatures. Each authentication is signed by a specific authenticator (identified by credential ID and public key), creating an audit trail that cannot be forged. The signature counter also helps detect credential cloning attempts.
+
+\subsection{Information Disclosure}
+
+\textbf{Password-only:} Password systems are highly vulnerable to information disclosure. Passwords are stored as hashes, but breaches can expose these hashes for offline cracking. More critically, passwords are transmitted during every login, creating multiple opportunities for interception. Password reuse across sites amplifies the impact of any single breach.
+
+\textbf{TOTP/2FA:} TOTP reduces information disclosure risk compared to passwords. The TOTP secret is stored server-side and never transmitted, but if compromised, it can generate valid codes. OTP codes themselves are short-lived but can be intercepted during transmission. Backup codes, if stored improperly, can also be a disclosure risk.
+
+\textbf{FIDO2/WebAuthn:} FIDO2 minimizes information disclosure risk. No shared secrets are stored or transmitted—only public keys are stored server-side, and private keys never leave the authenticator. Even if the server database is breached, attackers cannot use the public keys to authenticate. The challenge-response mechanism ensures no sensitive data is transmitted during authentication.
+
+\subsection{Denial of Service}
+
+\textbf{Password-only:} Password systems are vulnerable to DoS through brute-force attacks and account lockout mechanisms. Attackers can trigger lockouts by repeatedly attempting incorrect passwords, preventing legitimate users from accessing their accounts. Rate limiting helps but can be bypassed through distributed attacks.
+
+\textbf{TOTP/2FA:} TOTP systems face DoS risks from both password-based attacks and OTP flooding. Attackers can exhaust backup codes, flood users with OTP requests, or trigger account lockouts. Push-based MFA is particularly vulnerable to push fatigue attacks, where repeated prompts cause users to accidentally approve malicious requests.
+
+\textbf{FIDO2/WebAuthn:} FIDO2 is more resistant to DoS attacks. Brute-force attacks are infeasible due to public-key cryptography—each attempt requires a valid signature, which cannot be guessed. Account lockouts are less effective as attack vectors since there are no shared secrets to guess. However, users can still be locked out if they lose their authenticator and don't have backup credentials configured.
+
+\subsection{Elevation of Privilege}
+
+\textbf{Password-only:} Password systems are vulnerable to privilege elevation through weak or reused credentials. Administrative accounts with weak passwords can be compromised, and password reuse across systems allows lateral movement. The simplicity of password-based authentication makes it easier for attackers to gain initial access.
+
+\textbf{TOTP/2FA:} TOTP provides some protection against privilege elevation by requiring an additional factor, but high-privilege accounts remain targets for phishing and OTP relay attacks. If an administrator falls victim to phishing, their elevated privileges can be exploited immediately.
+
+\textbf{FIDO2/WebAuthn:} FIDO2 provides strong protection against privilege elevation. High-privilege accounts tied to FIDO2 credentials require physical access to the authenticator device, making remote compromise significantly more difficult. The origin binding prevents credential theft through phishing, and the cryptographic nature of authentication makes privilege escalation through credential compromise nearly impossible.
+
+\subsection{Summary}
+
+The STRIDE analysis reveals a clear security hierarchy: password-only systems are vulnerable across all threat categories, TOTP/2FA provides moderate improvements but remains susceptible to sophisticated attacks, and FIDO2/WebAuthn offers strong protection against most threat vectors. The primary security advantages of FIDO2 stem from its use of public-key cryptography, origin binding, and the elimination of shared secrets, making it resistant to the most common authentication attack vectors identified in Section~\ref{sec:common-vulnerabilities}.
+
+

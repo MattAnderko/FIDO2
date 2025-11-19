@@ -3,22 +3,23 @@ Latency tests for FIDO2 authentication.
 """
 import pytest
 import json
-from tests.utils.timing import measure_time
+from tests.utils.timing import measure_time_with_resources
 from tests.utils.results import get_collector
 from tests.mocks.webauthn_mock import MockAuthenticator
 
 
 @pytest.mark.asyncio
 async def test_fido2_registration_latency(client, test_db, test_redis, results_collector):
-    """Measure FIDO2 registration latency."""
+    """Measure FIDO2 registration latency (backend operations only)."""
     measurements = {}
     iterations = 10
     
     for i in range(iterations):
         username = f"testuser_fido2_{i}"
+        authenticator = MockAuthenticator(rp_id="localhost", authenticator_delay_ms=0)
         
-        # Step 1: Register start
-        with measure_time("fido2_register_start", measurements):
+        # Step 1: Register start (backend operation)
+        with measure_time_with_resources("fido2_register_start", measurements):
             start_response = await client.post(
                 "/api/v1/register/start",
                 json={
@@ -30,15 +31,13 @@ async def test_fido2_registration_latency(client, test_db, test_redis, results_c
         assert start_response.status_code == 200
         options = start_response.json()
         
-        # Step 2: Mock WebAuthn create (simulate authenticator)
-        authenticator = MockAuthenticator(rp_id="localhost", authenticator_delay_ms=100)
-        with measure_time("fido2_webauthn_create", measurements):
-            credential = authenticator.create_credential(options)
+        # Step 2: Mock WebAuthn create (client-side, not measured)
+        credential = authenticator.create_credential(options)
         
-        # Step 3: Register finish
+        # Step 3: Register finish (backend operation)
         # Note: This may fail due to cryptographic verification (expected with mock),
         # but we can still measure latency. For full validity, we'd need a proper software authenticator.
-        with measure_time("fido2_register_finish", measurements):
+        with measure_time_with_resources("fido2_register_finish", measurements):
             try:
                 finish_response = await client.post(
                     "/api/v1/register/finish",
@@ -54,22 +53,25 @@ async def test_fido2_registration_latency(client, test_db, test_redis, results_c
     
     # Store measurements
     collector = get_collector()
-    for name, times in measurements.items():
-        collector.add_measurements(name, times)
+    for name, values in measurements.items():
+        collector.add_measurements(name, values)
 
 
 @pytest.mark.asyncio
 async def test_fido2_registration_total_latency(client, test_db, test_redis, results_collector):
-    """Measure total FIDO2 registration latency (end-to-end)."""
+    """Measure total FIDO2 registration latency (backend operations only)."""
     measurements = {}
     iterations = 10
     
     for i in range(iterations):
         username = f"testuser_fido2_total_{i}"
+        authenticator = MockAuthenticator(rp_id="localhost", authenticator_delay_ms=0)
         
-        # Measure total registration time
-        with measure_time("fido2_registration_total", measurements):
-            # Start
+        # Measure only backend operations (start + finish endpoints)
+        # We measure start and finish separately to exclude client-side credential generation
+        
+        # Start (backend operation)
+        with measure_time_with_resources("fido2_registration_start", measurements):
             start_response = await client.post(
                 "/api/v1/register/start",
                 json={
@@ -79,12 +81,12 @@ async def test_fido2_registration_total_latency(client, test_db, test_redis, res
             )
             assert start_response.status_code == 200
             options = start_response.json()
-            
-            # Mock WebAuthn create
-            authenticator = MockAuthenticator(rp_id="localhost", authenticator_delay_ms=100)
-            credential = authenticator.create_credential(options)
-            
-            # Finish (may fail due to verification, but latency is still measured)
+        
+        # Generate credential outside timing context (client-side, not measured)
+        credential = authenticator.create_credential(options)
+        
+        # Finish (backend operation - measured)
+        with measure_time_with_resources("fido2_registration_finish", measurements):
             try:
                 finish_response = await client.post(
                     "/api/v1/register/finish",
@@ -96,10 +98,32 @@ async def test_fido2_registration_total_latency(client, test_db, test_redis, res
             except Exception:
                 pass  # Expected to fail with mock, but latency is measured
     
+    # Combine start + finish for total (backend only, excludes credential generation)
+    if "fido2_registration_start" in measurements and "fido2_registration_finish" in measurements:
+        start_times = measurements["fido2_registration_start"]
+        finish_times = measurements["fido2_registration_finish"]
+        if start_times and finish_times and len(start_times) == len(finish_times):
+            # Combine corresponding measurements
+            total_times = [s + f for s, f in zip(start_times, finish_times)]
+            measurements["fido2_registration_total"] = total_times
+            
+            # Combine resource metrics
+            for suffix in ["_cpu_ms", "_memory_mb", "_db_queries", "_db_time_ms"]:
+                start_key = f"fido2_registration_start{suffix}"
+                finish_key = f"fido2_registration_finish{suffix}"
+                total_key = f"fido2_registration_total{suffix}"
+                if start_key in measurements and finish_key in measurements:
+                    start_vals = measurements[start_key]
+                    finish_vals = measurements[finish_key]
+                    if start_vals and finish_vals and len(start_vals) == len(finish_vals):
+                        # Sum corresponding values
+                        combined_vals = [s + f for s, f in zip(start_vals, finish_vals)]
+                        measurements[total_key] = combined_vals
+    
     # Store measurements
     collector = get_collector()
-    for name, times in measurements.items():
-        collector.add_measurements(name, times)
+    for name, values in measurements.items():
+        collector.add_measurements(name, values)
 
 
 @pytest.mark.asyncio
@@ -127,7 +151,7 @@ async def test_fido2_login_latency(client, test_db, test_redis, results_collecto
     )
     if start_response.status_code == 200:
         options = start_response.json()
-        authenticator = MockAuthenticator(rp_id="localhost", authenticator_delay_ms=100)
+        authenticator = MockAuthenticator(rp_id="localhost", authenticator_delay_ms=0)
         credential = authenticator.create_credential(options)
         
         # Try to finish registration (may fail, but that's OK for latency testing)
@@ -144,8 +168,8 @@ async def test_fido2_login_latency(client, test_db, test_redis, results_collecto
     
     # Now test login
     for i in range(iterations):
-        # Step 1: Login start
-        with measure_time("fido2_login_start", measurements):
+        # Step 1: Login start (backend operation)
+        with measure_time_with_resources("fido2_login_start", measurements):
             login_start_response = await client.post(
                 "/api/v1/login/start",
                 json={"username": username}
@@ -155,12 +179,11 @@ async def test_fido2_login_latency(client, test_db, test_redis, results_collecto
         if login_start_response.status_code == 200:
             login_options = login_start_response.json()
             
-            # Step 2: Mock WebAuthn get (simulate authenticator - includes 100ms delay)
-            with measure_time("fido2_webauthn_get", measurements):
-                assertion = authenticator.get_assertion(login_options)
+            # Step 2: Mock WebAuthn get (client-side, not measured)
+            assertion = authenticator.get_assertion(login_options)
             
-            # Step 3: Login finish (may fail due to verification, but latency is measured)
-            with measure_time("fido2_login_finish", measurements):
+            # Step 3: Login finish (backend operation - measured)
+            with measure_time_with_resources("fido2_login_finish", measurements):
                 try:
                     login_finish_response = await client.post(
                         "/api/v1/login/finish",
@@ -171,30 +194,16 @@ async def test_fido2_login_latency(client, test_db, test_redis, results_collecto
                     )
                 except Exception:
                     pass  # Expected to fail with mock, but latency is measured
-        elif authenticator:
-            # If login_start fails, still measure authenticator interaction for fair comparison
-            # Create mock options to simulate the authenticator delay
-            import secrets
-            mock_challenge = secrets.token_bytes(32)
-            mock_options = {
-                "challenge": mock_challenge.hex(),
-                "rpId": "localhost",
-                "allowCredentials": []
-            }
-            # Measure authenticator delay even if login_start failed
-            with measure_time("fido2_webauthn_get", measurements):
-                if authenticator.credentials:  # Only if we have credentials from registration
-                    authenticator.get_assertion(mock_options)
     
     # Store measurements
     collector = get_collector()
-    for name, times in measurements.items():
-        collector.add_measurements(name, times)
+    for name, values in measurements.items():
+        collector.add_measurements(name, values)
 
 
 @pytest.mark.asyncio
 async def test_fido2_login_total_latency(client, test_db, test_redis, results_collector):
-    """Measure total FIDO2 login latency (end-to-end)."""
+    """Measure total FIDO2 login latency (backend operations only)."""
     measurements = {}
     iterations = 10
     
@@ -211,8 +220,8 @@ async def test_fido2_login_total_latency(client, test_db, test_redis, results_co
     authenticator = None
     if start_response.status_code == 200:
         options = start_response.json()
-        authenticator = MockAuthenticator(rp_id="localhost", authenticator_delay_ms=100)
-        credential = authenticator.create_credential(options)
+        authenticator = MockAuthenticator(rp_id="localhost", authenticator_delay_ms=0)
+        credential = authenticator.create_credential(options)  # Client-side, not measured
         try:
             await client.post(
                 "/api/v1/register/finish",
@@ -226,20 +235,21 @@ async def test_fido2_login_total_latency(client, test_db, test_redis, results_co
     
     # Test login
     for i in range(iterations):
-        with measure_time("fido2_login_total", measurements):
-            # Start
+        # Start (backend operation)
+        with measure_time_with_resources("fido2_login_start", measurements):
             login_start_response = await client.post(
                 "/api/v1/login/start",
                 json={"username": username}
             )
+        
+        if login_start_response.status_code == 200 and authenticator:
+            login_options = login_start_response.json()
             
-            if login_start_response.status_code == 200 and authenticator:
-                login_options = login_start_response.json()
-                
-                # Mock WebAuthn get (includes authenticator delay - this is the key component)
-                assertion = authenticator.get_assertion(login_options)
-                
-                # Finish (may fail due to verification, but latency is measured)
+            # Generate assertion outside timing context (client-side, not measured)
+            assertion = authenticator.get_assertion(login_options)
+            
+            # Finish (backend operation - measured)
+            with measure_time_with_resources("fido2_login_finish", measurements):
                 try:
                     await client.post(
                         "/api/v1/login/finish",
@@ -250,22 +260,31 @@ async def test_fido2_login_total_latency(client, test_db, test_redis, results_co
                     )
                 except Exception:
                     pass  # Expected to fail with mock, but latency is measured
-            elif authenticator:
-                # If login_start fails but we have an authenticator, simulate the flow
-                # by creating mock options and calling get_assertion to include authenticator delay
-                # This ensures we measure the authenticator interaction even if credential lookup fails
-                from fido2.webauthn import PublicKeyCredentialRequestOptions
-                import secrets
-                mock_challenge = secrets.token_bytes(32)
-                mock_options = {
-                    "challenge": mock_challenge.hex(),
-                    "rpId": "localhost",
-                    "allowCredentials": []
-                }
-                authenticator.get_assertion(mock_options)
+    
+    # Combine start + finish for total (backend only, excludes assertion generation)
+    if "fido2_login_start" in measurements and "fido2_login_finish" in measurements:
+        start_times = measurements["fido2_login_start"]
+        finish_times = measurements["fido2_login_finish"]
+        if start_times and finish_times and len(start_times) == len(finish_times):
+            # Combine corresponding measurements
+            total_times = [s + f for s, f in zip(start_times, finish_times)]
+            measurements["fido2_login_total"] = total_times
+            
+            # Combine resource metrics
+            for suffix in ["_cpu_ms", "_memory_mb", "_db_queries", "_db_time_ms"]:
+                start_key = f"fido2_login_start{suffix}"
+                finish_key = f"fido2_login_finish{suffix}"
+                total_key = f"fido2_login_total{suffix}"
+                if start_key in measurements and finish_key in measurements:
+                    start_vals = measurements[start_key]
+                    finish_vals = measurements[finish_key]
+                    if start_vals and finish_vals and len(start_vals) == len(finish_vals):
+                        # Sum corresponding values
+                        combined_vals = [s + f for s, f in zip(start_vals, finish_vals)]
+                        measurements[total_key] = combined_vals
     
     # Store measurements
     collector = get_collector()
-    for name, times in measurements.items():
-        collector.add_measurements(name, times)
+    for name, values in measurements.items():
+        collector.add_measurements(name, values)
 

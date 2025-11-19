@@ -1,0 +1,76 @@
+\section{Empirical STRIDE Security Testing}\label{sec:stride-testing}
+
+This section presents empirical validation of the STRIDE threat analysis presented in Section~\ref{sec:stride-analysis} through automated security testing. The tests validate theoretical predictions regarding the security posture of password-only, TOTP-based 2FA, and FIDO2/WebAuthn authentication methods across all six STRIDE threat categories.
+
+\subsection{Test Methodology}
+
+Empirical security testing was conducted using an automated testing framework that simulates security attacks and validates security properties. Tests were executed in an isolated environment using in-memory databases and mock authenticators to ensure reproducibility and prevent interference between test cases. The testing approach validates both vulnerabilities (where systems fail to protect) and security properties (where systems successfully resist attacks).
+
+For each STRIDE category, tests were designed to validate the theoretical predictions from Section~\ref{sec:stride-analysis}. Vulnerability tests confirm that expected weaknesses exist, while protection tests verify that security mechanisms function as designed. This dual approach ensures comprehensive validation of both theoretical analysis and practical implementation.
+
+\subsection{Testing by STRIDE Category}
+
+\subsubsection{Spoofing}
+
+\textbf{Password-only authentication:} Empirical tests validated the credential reuse vulnerability by demonstrating successful authentication across different contexts without origin binding. Tests registered credentials on one context and successfully authenticated using the same credentials in a different context, confirming that password-only systems lack origin binding and are vulnerable to credential stuffing attacks. This aligns with the theoretical analysis that identified password systems as highly vulnerable to spoofing through phishing and credential reuse.
+
+\textbf{TOTP/2FA authentication:} Tests confirmed the OTP relay attack vulnerability by demonstrating that time-based codes can be captured and immediately reused through adversary-in-the-middle proxies. The tests validated that TOTP codes generated for legitimate authentication can be intercepted and relayed in real-time, effectively bypassing the second factor. This confirms the theoretical prediction that TOTP provides limited protection against spoofing due to the relay attack vector.
+
+\textbf{FIDO2/WebAuthn authentication:} Tests verified origin binding protection by attempting authentication with incorrect origin/RP ID values. The empirical results demonstrate that FIDO2 credentials are cryptographically bound to their origin, preventing their use on malicious sites even when users are deceived into interacting with phishing sites. This validates the theoretical analysis that identified FIDO2's strong protection against spoofing through origin binding and public-key cryptography.
+
+\subsubsection{Tampering}
+
+\textbf{Password-only authentication:} Tests confirmed the lack of cryptographic integrity protection beyond the TLS layer. Empirical validation demonstrated that password authentication systems rely solely on TLS for message integrity, with no cryptographic signatures or integrity checks within the authentication flow itself. This aligns with the theoretical prediction that password systems offer no protection against message tampering if TLS is compromised or misconfigured.
+
+\textbf{TOTP/2FA authentication:} Tests validated message tampering vulnerability during the authentication flow. While TOTP codes themselves are time-based values that cannot be easily modified, the authentication flow can be intercepted and modified by an adversary-in-the-middle, enabling OTP relay attacks. This confirms the theoretical analysis that TOTP relies primarily on TLS for tampering protection.
+
+\textbf{FIDO2/WebAuthn authentication:} Tests verified tampering resistance through three distinct test scenarios: challenge tampering, signature tampering, and authenticator data modification. All three test scenarios demonstrated that FIDO2's challenge-response mechanism successfully rejects modified challenges, invalid signatures, and tampered authenticator data. The empirical results confirm that any modification to the challenge or response invalidates the cryptographic signature, preventing tampering attacks even if TLS is compromised. This validates the theoretical prediction that FIDO2 provides strong tampering protection through cryptographic signatures.
+
+\subsubsection{Repudiation}
+
+\textbf{Password-only authentication:} Tests confirmed weak non-repudiation by demonstrating that no cryptographic proof exists linking authentications to specific devices or users. Empirical validation showed that password sharing is undetectable, and users can plausibly deny authentication even when their password was used. Tests verified that only timestamps are recorded, with no cryptographic signatures or device identifiers that could provide non-repudiation. This aligns with the theoretical analysis that identified password systems as providing weak non-repudiation.
+
+\textbf{TOTP/2FA authentication:} Tests validated moderate non-repudiation through audit logs while confirming their limitations. Empirical results demonstrated that TOTP systems record usage timestamps, providing better audit trails than password-only systems. However, tests confirmed that these logs can be falsified and that OTP codes do not provide cryptographic proof of which device generated them. This confirms the theoretical prediction that TOTP provides moderate non-repudiation through audit logs that are falsifiable.
+
+\textbf{FIDO2/WebAuthn authentication:} Tests verified strong non-repudiation through cryptographic signatures and signature counters. Empirical validation demonstrated that each authentication is signed by a specific authenticator identified by credential ID and public key, creating an unforgeable audit trail. Tests confirmed that signature counters increment with each authentication and can detect credential cloning attempts through inconsistent counter values. This validates the theoretical analysis that identified FIDO2 as providing strong non-repudiation through cryptographic proof.
+
+\subsubsection{Information Disclosure}
+
+\textbf{Password-only authentication:} Tests confirmed password hash storage vulnerability and the amplification effect of password reuse. Empirical validation demonstrated that password hashes are stored server-side and can be cracked if the server database is compromised. Tests also validated that password reuse across sites amplifies the impact of any single breach, enabling credential stuffing attacks. This aligns with the theoretical analysis that identified password systems as highly vulnerable to information disclosure.
+
+\textbf{TOTP/2FA authentication:} Tests validated TOTP secret storage risk and OTP code interception vulnerability. Empirical results demonstrated that TOTP secrets stored server-side can generate valid codes if compromised, and that OTP codes can be intercepted during transmission. This confirms the theoretical prediction that TOTP reduces information disclosure risk compared to passwords but remains vulnerable to secret compromise and code interception.
+
+\textbf{FIDO2/WebAuthn authentication:} Tests verified that public keys stored server-side cannot be used to authenticate. Empirical validation demonstrated that even if the server database is compromised, attackers cannot use the stored public keys to authenticate because private keys never leave the authenticator device. Tests confirmed that the challenge-response mechanism ensures no sensitive data is transmitted during authentication. This validates the theoretical analysis that identified FIDO2 as minimizing information disclosure risk through the elimination of shared secrets.
+
+\subsubsection{Denial of Service}
+
+\textbf{Password-only authentication:} Tests confirmed vulnerability to brute-force attacks and account lockout mechanisms. Empirical validation demonstrated that attackers can trigger account lockouts by repeatedly attempting incorrect passwords, preventing legitimate users from accessing their accounts. Tests verified that rate limiting provides some protection but can be bypassed through distributed attacks. This aligns with the theoretical analysis that identified password systems as vulnerable to DoS through brute-force attacks and lockout mechanisms.
+
+\textbf{TOTP/2FA authentication:} Tests validated brute-force protection mechanisms while confirming vulnerability to backup code exhaustion. Empirical results demonstrated that TOTP systems implement rate limiting and account lockout protections, but attackers can still exhaust backup codes or trigger account lockouts through repeated failed attempts. This confirms the theoretical prediction that TOTP systems face DoS risks from both password-based attacks and OTP flooding.
+
+\textbf{FIDO2/WebAuthn authentication:} Tests verified brute-force resistance due to public-key cryptography. Empirical validation demonstrated that brute-force attacks are infeasible because each authentication attempt requires a valid cryptographic signature, which cannot be guessed. Tests confirmed that account lockouts are less effective as attack vectors since there are no shared secrets to guess. This validates the theoretical analysis that identified FIDO2 as more resistant to DoS attacks through public-key cryptography.
+
+\subsubsection{Elevation of Privilege}
+
+\textbf{Password-only authentication:} Tests confirmed vulnerability to privilege elevation through weak admin credentials and password reuse enabling lateral movement. Empirical validation demonstrated that administrative accounts with weak passwords can be compromised, and password reuse across systems allows attackers to gain access to multiple systems, potentially including high-privilege accounts. Tests verified that the simplicity of password-based authentication makes it easier for attackers to gain initial access. This aligns with the theoretical analysis that identified password systems as vulnerable to privilege elevation.
+
+\textbf{TOTP/2FA authentication:} Tests validated admin account phishing vulnerability through OTP relay attacks. Empirical results demonstrated that while TOTP requires an additional factor, high-privilege accounts remain targets for phishing and OTP relay attacks. Tests confirmed that if an administrator falls victim to phishing, their elevated privileges can be exploited immediately. This confirms the theoretical prediction that TOTP provides some protection but high-privilege accounts remain vulnerable.
+
+\textbf{FIDO2/WebAuthn authentication:} Tests verified admin account protection requiring physical authenticator access and origin binding preventing phishing. Empirical validation demonstrated that high-privilege accounts tied to FIDO2 credentials require physical access to the authenticator device, making remote compromise significantly more difficult. Tests confirmed that origin binding prevents credential theft through phishing, and the cryptographic nature of authentication makes privilege escalation through credential compromise nearly impossible. This validates the theoretical analysis that identified FIDO2 as providing strong protection against privilege elevation.
+
+\subsection{Comparison with Theoretical Analysis}
+
+The empirical test results demonstrate strong alignment with the theoretical STRIDE analysis presented in Section~\ref{sec:stride-analysis}. Across all six threat categories, the automated security tests confirmed the theoretical predictions regarding the security posture of each authentication method.
+
+\textbf{Confirmed Predictions:} The empirical tests validated all major theoretical predictions. Password-only systems demonstrated vulnerabilities across all STRIDE categories, TOTP/2FA showed moderate improvements with remaining vulnerabilities, and FIDO2/WebAuthn exhibited strong protection against most threat vectors. The tests confirmed that FIDO2's security advantages stem from public-key cryptography, origin binding, and the elimination of shared secrets, as predicted in the theoretical analysis.
+
+\textbf{No Significant Discrepancies:} The empirical results did not reveal any significant discrepancies between theoretical expectations and observed security properties. All expected vulnerabilities were confirmed, and all expected protections were validated. This strong alignment suggests that the theoretical STRIDE analysis accurately captures the practical security characteristics of each authentication method.
+
+\textbf{Validation of Security Hierarchy:} The empirical tests confirm the security hierarchy identified in the theoretical analysis: password-only systems are vulnerable across all threat categories, TOTP/2FA provides moderate improvements but remains susceptible to sophisticated attacks, and FIDO2/WebAuthn offers strong protection against most threat vectors. This validation strengthens confidence in the theoretical analysis and its practical applicability.
+
+\subsection{Summary}
+
+Empirical security testing across all six STRIDE threat categories validates the theoretical analysis presented in Section~\ref{sec:stride-analysis}. The automated tests confirm that password-only systems are vulnerable across all categories, TOTP/2FA provides moderate improvements with remaining vulnerabilities, and FIDO2/WebAuthn offers strong protection against most threat vectors. The strong alignment between theoretical predictions and empirical results demonstrates the accuracy of the STRIDE threat modeling framework in evaluating authentication system security posture.
+
+The empirical validation provides confidence that the security advantages of FIDO2 identified in the theoretical analysis—public-key cryptography, origin binding, and elimination of shared secrets—are realized in practice. This validation supports the conclusion that FIDO2 represents a significant security improvement over password-only and TOTP-based authentication methods across all STRIDE threat categories.
+

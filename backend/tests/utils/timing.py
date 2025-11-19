@@ -5,6 +5,7 @@ import time
 from contextlib import contextmanager
 from functools import wraps
 from typing import Dict, List, Optional
+from tests.utils.resources import ResourceContext
 
 
 class TimingContext:
@@ -92,4 +93,77 @@ def get_current_time_ns() -> int:
 def get_current_time_ms() -> float:
     """Get current time in milliseconds."""
     return time.perf_counter() * 1000
+
+
+class CombinedContext:
+    """Context manager that combines timing and resource measurement."""
+    
+    def __init__(self, name: str, measurements: Optional[Dict[str, list]] = None):
+        self.name = name
+        if measurements is None:
+            self.measurements = {}
+        else:
+            self.measurements = measurements
+        self.timing_ctx = TimingContext(name, measurements)
+        self.resource_ctx = ResourceContext(name, measurements)
+        
+    def __enter__(self):
+        self.timing_ctx.__enter__()
+        self.resource_ctx.__enter__()
+        return self
+        
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.resource_ctx.__exit__(exc_type, exc_val, exc_tb)
+        self.timing_ctx.__exit__(exc_type, exc_val, exc_tb)
+        return False
+    
+    @property
+    def elapsed_ms(self) -> float:
+        """Get elapsed wall-clock time in milliseconds."""
+        return self.timing_ctx.elapsed_ms
+    
+    @property
+    def cpu_time_ms(self) -> float:
+        """Get CPU time in milliseconds."""
+        return self.resource_ctx.cpu_time_ms
+    
+    @property
+    def memory_delta_mb(self) -> float:
+        """Get memory delta in MB."""
+        return self.resource_ctx.memory_delta_mb
+    
+    @property
+    def db_query_count(self) -> int:
+        """Get database query count."""
+        return self.resource_ctx.db_query_count
+    
+    @property
+    def db_time_ms(self) -> float:
+        """Get total database query time in milliseconds."""
+        return self.resource_ctx.db_time_ms
+
+
+@contextmanager
+def measure_time_with_resources(name: str, measurements: Optional[Dict[str, list]] = None):
+    """
+    Context manager for measuring both execution time and resource usage.
+    
+    Measures:
+    - Wall-clock latency (ms)
+    - CPU time (ms)
+    - Memory delta (MB)
+    - Database query count
+    - Database query time (ms)
+    
+    Args:
+        name: Name identifier for this measurement
+        measurements: Optional dict to store measurements
+    
+    Example:
+        with measure_time_with_resources("password_login", measurements):
+            response = await client.post("/api/v1/password/login", json=...)
+    """
+    ctx = CombinedContext(name, measurements)
+    with ctx:
+        yield ctx
 

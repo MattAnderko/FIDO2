@@ -1,0 +1,362 @@
+{
+  "fido2_login_start": {
+    "mean": 1.319852850008374,
+    "min": 1.319852850008374,
+    "max": 1.319852850008374,
+    "count": 1
+  },
+  "fido2_login_start_cpu_ms": {
+    "mean": 1.25574890000002,
+    "min": 1.25574890000002,
+    "max": 1.25574890000002,
+    "count": 1
+  },
+  "fido2_login_start_db_queries": {
+    "mean": 7.0,
+    "min": 7.0,
+    "max": 7.0,
+    "count": 1
+  },
+  "fido2_login_start_db_time_ms": {
+    "mean": 0.10605949994442199,
+    "min": 0.10605949994442199,
+    "max": 0.10605949994442199,
+    "count": 1
+  },
+  "fido2_login_start_memory_mb": {
+    "mean": 0.004296875,
+    "min": 0.004296875,
+    "max": 0.004296875,
+    "count": 1
+  },
+  "fido2_register_finish": {
+    "mean": 1.9329870999854393,
+    "min": 1.9329870999854393,
+    "max": 1.9329870999854393,
+    "count": 1
+  },
+  "fido2_register_finish_cpu_ms": {
+    "mean": 1.8367690999999908,
+    "min": 1.8367690999999908,
+    "max": 1.8367690999999908,
+    "count": 1
+  },
+  "fido2_register_finish_db_queries": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "count": 1
+  },
+  "fido2_register_finish_db_time_ms": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "count": 1
+  },
+  "fido2_register_finish_memory_mb": {
+    "mean": 0.0109375,
+    "min": 0.0109375,
+    "max": 0.0109375,
+    "count": 1
+  },
+  "fido2_register_start": {
+    "mean": 5.1234831000328995,
+    "min": 5.1234831000328995,
+    "max": 5.1234831000328995,
+    "count": 1
+  },
+  "fido2_register_start_cpu_ms": {
+    "mean": 4.964542699999996,
+    "min": 4.964542699999996,
+    "max": 4.964542699999996,
+    "count": 1
+  },
+  "fido2_register_start_db_queries": {
+    "mean": 3.0,
+    "min": 3.0,
+    "max": 3.0,
+    "count": 1
+  },
+  "fido2_register_start_db_time_ms": {
+    "mean": 0.13087039997117245,
+    "min": 0.13087039997117245,
+    "max": 0.13087039997117245,
+    "count": 1
+  },
+  "fido2_register_start_memory_mb": {
+    "mean": 0.066796875,
+    "min": 0.066796875,
+    "max": 0.066796875,
+    "count": 1
+  },
+  "fido2_registration_finish": {
+    "mean": 1.844815200024641,
+    "min": 1.844815200024641,
+    "max": 1.844815200024641,
+    "count": 1
+  },
+  "fido2_registration_finish_cpu_ms": {
+    "mean": 1.721245299999996,
+    "min": 1.721245299999996,
+    "max": 1.721245299999996,
+    "count": 1
+  },
+  "fido2_registration_finish_db_queries": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "count": 1
+  },
+  "fido2_registration_finish_db_time_ms": {
+    "mean": 0.0,
+    "min": 0.0,
+    "max": 0.0,
+    "count": 1
+  },
+  "fido2_registration_finish_memory_mb": {
+    "mean": 0.00703125,
+    "min": 0.00703125,
+    "max": 0.00703125,
+    "count": 1
+  },
+  "fido2_registration_start": {
+    "mean": 3.713938199939548,
+    "min": 3.713938199939548,
+    "max": 3.713938199939548,
+    "count": 1
+  },
+  "fido2_registration_start_cpu_ms": {
+    "mean": 3.6022982000000203,
+    "min": 3.6022982000000203,
+    "max": 3.6022982000000203,
+    "count": 1
+  },
+  "fido2_registration_start_db_queries": {
+    "mean": 6.0,
+    "min": 6.0,
+    "max": 6.0,
+    "count": 1
+  },
+  "fido2_registration_start_db_time_ms": {
+    "mean": 0.2090445999556323,
+    "min": 0.2090445999556323,
+    "max": 0.2090445999556323,
+    "count": 1
+  },
+  "fido2_registration_start_memory_mb": {
+    "mean": 0.012890625,
+    "min": 0.012890625,
+    "max": 0.012890625,
+    "count": 1
+  },
+  "fido2_registration_total": {
+    "mean": 5.558753399964189,
+    "min": 5.558753399964189,
+    "max": 5.558753399964189,
+    "count": 1
+  },
+  "fido2_registration_total_cpu_ms": {
+    "mean": 5.323543500000016,
+    "min": 5.323543500000016,
+    "max": 5.323543500000016,
+    "count": 1
+  },
+  "fido2_registration_total_db_queries": {
+    "mean": 6.0,
+    "min": 6.0,
+    "max": 6.0,
+    "count": 1
+  },
+  "fido2_registration_total_db_time_ms": {
+    "mean": 0.2090445999556323,
+    "min": 0.2090445999556323,
+    "max": 0.2090445999556323,
+    "count": 1
+  },
+  "fido2_registration_total_memory_mb": {
+    "mean": 0.019921875,
+    "min": 0.019921875,
+    "max": 0.019921875,
+    "count": 1
+  },
+  "password_login_endpoint": {
+    "mean": 218.45450040000287,
+    "min": 218.45450040000287,
+    "max": 218.45450040000287,
+    "count": 1
+  },
+  "password_login_endpoint_cpu_ms": {
+    "mean": 216.80301520000003,
+    "min": 216.80301520000003,
+    "max": 216.80301520000003,
+    "count": 1
+  },
+  "password_login_endpoint_db_queries": {
+    "mean": 42.0,
+    "min": 42.0,
+    "max": 42.0,
+    "count": 1
+  },
+  "password_login_endpoint_db_time_ms": {
+    "mean": 1.9796854998276103,
+    "min": 1.9796854998276103,
+    "max": 1.9796854998276103,
+    "count": 1
+  },
+  "password_login_endpoint_memory_mb": {
+    "mean": 0.012890625,
+    "min": 0.012890625,
+    "max": 0.012890625,
+    "count": 1
+  },
+  "password_login_total": {
+    "mean": 220.37873840001794,
+    "min": 220.37873840001794,
+    "max": 220.37873840001794,
+    "count": 1
+  },
+  "password_login_total_cpu_ms": {
+    "mean": 217.96041929999993,
+    "min": 217.96041929999993,
+    "max": 217.96041929999993,
+    "count": 1
+  },
+  "password_login_total_db_queries": {
+    "mean": 36.0,
+    "min": 36.0,
+    "max": 36.0,
+    "count": 1
+  },
+  "password_login_total_db_time_ms": {
+    "mean": 2.011199800426766,
+    "min": 2.011199800426766,
+    "max": 2.011199800426766,
+    "count": 1
+  },
+  "password_login_total_memory_mb": {
+    "mean": 0.01015625,
+    "min": 0.01015625,
+    "max": 0.01015625,
+    "count": 1
+  },
+  "password_registration_total": {
+    "mean": 221.1852823999834,
+    "min": 221.1852823999834,
+    "max": 221.1852823999834,
+    "count": 1
+  },
+  "password_registration_total_cpu_ms": {
+    "mean": 219.08701820000002,
+    "min": 219.08701820000002,
+    "max": 219.08701820000002,
+    "count": 1
+  },
+  "password_registration_total_db_queries": {
+    "mean": 15.0,
+    "min": 15.0,
+    "max": 15.0,
+    "count": 1
+  },
+  "password_registration_total_db_time_ms": {
+    "mean": 0.8546912998326661,
+    "min": 0.8546912998326661,
+    "max": 0.8546912998326661,
+    "count": 1
+  },
+  "password_registration_total_memory_mb": {
+    "mean": 0.00703125,
+    "min": 0.00703125,
+    "max": 0.00703125,
+    "count": 1
+  },
+  "totp_login_endpoint": {
+    "mean": 213.91547909997826,
+    "min": 213.91547909997826,
+    "max": 213.91547909997826,
+    "count": 1
+  },
+  "totp_login_endpoint_cpu_ms": {
+    "mean": 213.07525700000036,
+    "min": 213.07525700000036,
+    "max": 213.07525700000036,
+    "count": 1
+  },
+  "totp_login_endpoint_db_queries": {
+    "mean": 40.0,
+    "min": 40.0,
+    "max": 40.0,
+    "count": 1
+  },
+  "totp_login_endpoint_db_time_ms": {
+    "mean": 2.05700329956926,
+    "min": 2.05700329956926,
+    "max": 2.05700329956926,
+    "count": 1
+  },
+  "totp_login_endpoint_memory_mb": {
+    "mean": 0.00859375,
+    "min": 0.00859375,
+    "max": 0.00859375,
+    "count": 1
+  },
+  "totp_login_total": {
+    "mean": 213.61350109998511,
+    "min": 213.61350109998511,
+    "max": 213.61350109998511,
+    "count": 1
+  },
+  "totp_login_total_cpu_ms": {
+    "mean": 212.80843629999995,
+    "min": 212.80843629999995,
+    "max": 212.80843629999995,
+    "count": 1
+  },
+  "totp_login_total_db_queries": {
+    "mean": 36.0,
+    "min": 36.0,
+    "max": 36.0,
+    "count": 1
+  },
+  "totp_login_total_db_time_ms": {
+    "mean": 1.917640799979381,
+    "min": 1.917640799979381,
+    "max": 1.917640799979381,
+    "count": 1
+  },
+  "totp_login_total_memory_mb": {
+    "mean": 0.004296875,
+    "min": 0.004296875,
+    "max": 0.004296875,
+    "count": 1
+  },
+  "totp_setup_total": {
+    "mean": 224.71022039997024,
+    "min": 224.71022039997024,
+    "max": 224.71022039997024,
+    "count": 1
+  },
+  "totp_setup_total_cpu_ms": {
+    "mean": 223.5130119999999,
+    "min": 223.5130119999999,
+    "max": 223.5130119999999,
+    "count": 1
+  },
+  "totp_setup_total_db_queries": {
+    "mean": 32.0,
+    "min": 32.0,
+    "max": 32.0,
+    "count": 1
+  },
+  "totp_setup_total_db_time_ms": {
+    "mean": 2.3097599999800877,
+    "min": 2.3097599999800877,
+    "max": 2.3097599999800877,
+    "count": 1
+  },
+  "totp_setup_total_memory_mb": {
+    "mean": 0.13125,
+    "min": 0.13125,
+    "max": 0.13125,
+    "count": 1
+  }
+}

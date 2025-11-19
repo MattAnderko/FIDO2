@@ -4,7 +4,9 @@ Pytest configuration and fixtures for latency tests.
 import pytest
 import pytest_asyncio
 import os
-from sqlalchemy import create_engine
+import time
+from sqlalchemy import create_engine, event
+from sqlalchemy.engine import Engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 from httpx import AsyncClient
@@ -12,6 +14,7 @@ from fakeredis import FakeStrictRedis
 from contextlib import contextmanager
 import sys
 from unittest.mock import patch
+from tests.utils.resources import increment_db_query
 
 # Add parent directory to path to import app modules
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
@@ -34,6 +37,19 @@ def test_db():
         poolclass=StaticPool,
     )
     Base.metadata.create_all(bind=engine)
+    
+    # Add SQLAlchemy event listeners for query tracking
+    @event.listens_for(Engine, "before_cursor_execute")
+    def receive_before_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        """Store start time before query execution."""
+        context._query_start_time = time.perf_counter()
+    
+    @event.listens_for(Engine, "after_cursor_execute")
+    def receive_after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
+        """Track query execution time."""
+        if hasattr(context, '_query_start_time'):
+            elapsed_ms = (time.perf_counter() - context._query_start_time) * 1000
+            increment_db_query(elapsed_ms)
     
     TestingSessionLocal = sessionmaker(
         autocommit=False,

@@ -16,10 +16,16 @@ export ENV="test"
 export ALLOWED_ORIGINS="http://localhost:8080"
 
 # Run pytest with provided arguments or default
+# Always export results to results.json and results.csv
 if [ $# -eq 0 ]; then
-    pytest tests/ -v --asyncio-mode=auto
+    pytest tests/ -v --asyncio-mode=auto \
+        --latency-results=results.json \
+        --latency-results-csv=results.csv
 else
-    pytest tests/ -v --asyncio-mode=auto "$@"
+    pytest tests/ -v --asyncio-mode=auto \
+        --latency-results=results.json \
+        --latency-results-csv=results.csv \
+        "$@"
 fi
 
 

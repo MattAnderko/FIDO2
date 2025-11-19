@@ -3,7 +3,7 @@ Latency tests for TOTP authentication.
 """
 import pytest
 import pyotp
-from tests.utils.timing import measure_time
+from tests.utils.timing import measure_time_with_resources
 from tests.utils.results import get_collector
 
 
@@ -34,7 +34,7 @@ async def test_totp_setup_latency(client, test_db, test_redis, results_collector
             continue
         
         # Measure TOTP setup time (includes password verification + TOTP secret generation + QR code creation)
-        with measure_time("totp_setup_total", measurements):
+        with measure_time_with_resources("totp_setup_total", measurements):
             response = await client.post(
                 "/api/v1/totp/setup",
                 json={
@@ -68,7 +68,7 @@ async def test_totp_login_latency(client, test_db, test_redis, test_user_with_to
         totp_code = totp.now()
         
         # Measure total login time (includes password + TOTP verification)
-        with measure_time("totp_login_total", measurements):
+        with measure_time_with_resources("totp_login_total", measurements):
             response = await client.post(
                 "/api/v1/totp/login",
                 json={
@@ -109,7 +109,7 @@ async def test_totp_login_breakdown(client, test_db, test_redis, test_user_with_
         totp_code = totp.now()
         
         # Measure endpoint call (includes all operations)
-        with measure_time("totp_login_endpoint", measurements):
+        with measure_time_with_resources("totp_login_endpoint", measurements):
             response = await client.post(
                 "/api/v1/totp/login",
                 json={

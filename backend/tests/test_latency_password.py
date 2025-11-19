@@ -3,7 +3,7 @@ Latency tests for password authentication.
 """
 import pytest
 import json
-from tests.utils.timing import measure_time
+from tests.utils.timing import measure_time_with_resources
 from tests.utils.results import get_collector
 
 
@@ -17,7 +17,7 @@ async def test_password_registration_latency(client, test_db, test_redis, result
         username = f"testuser_pwd_{i}"
         
         # Measure total registration time
-        with measure_time("password_registration_total", measurements):
+        with measure_time_with_resources("password_registration_total", measurements):
             response = await client.post(
                 "/api/v1/password/register",
                 json={
@@ -45,7 +45,7 @@ async def test_password_login_latency(client, test_db, test_redis, test_user_wit
     
     for i in range(iterations):
         # Measure total login time
-        with measure_time("password_login_total", measurements):
+        with measure_time_with_resources("password_login_total", measurements):
             response = await client.post(
                 "/api/v1/password/login",
                 json={
@@ -79,7 +79,7 @@ async def test_password_login_breakdown(client, test_db, test_redis, test_user_w
     
     for i in range(iterations):
         # Measure endpoint call (includes all operations)
-        with measure_time("password_login_endpoint", measurements):
+        with measure_time_with_resources("password_login_endpoint", measurements):
             response = await client.post(
                 "/api/v1/password/login",
                 json={

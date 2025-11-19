@@ -12,8 +12,8 @@ from pathlib import Path
 
 # IEEE-style configuration
 plt.rcParams.update({
-    'font.family': 'serif',
-    'font.serif': ['Times', 'Computer Modern Roman'],
+    'font.family': 'sans-serif',
+    'font.sans-serif': ['DejaVu Sans', 'Arial', 'Helvetica'],
     'font.size': 10,
     'axes.labelsize': 10,
     'axes.titlesize': 11,
@@ -59,19 +59,19 @@ def create_registration_comparison(results):
     
     methods = ['Password', 'FIDO2', 'TOTP']
     means = [
-        results['password_registration_total']['mean'],
-        results['fido2_registration_total']['mean'],
-        results['totp_setup_total']['mean']
+        results.get('password_registration_total', {}).get('mean', 0),
+        results.get('fido2_registration_total', {}).get('mean', 0),
+        results.get('totp_setup_total', {}).get('mean', 0)
     ]
     errors_low = [
-        results['password_registration_total']['mean'] - results['password_registration_total']['min'],
-        results['fido2_registration_total']['mean'] - results['fido2_registration_total']['min'],
-        results['totp_setup_total']['mean'] - results['totp_setup_total']['min']
+        means[0] - results.get('password_registration_total', {}).get('min', 0) if means[0] > 0 else 0,
+        means[1] - results.get('fido2_registration_total', {}).get('min', 0) if means[1] > 0 else 0,
+        means[2] - results.get('totp_setup_total', {}).get('min', 0) if means[2] > 0 else 0
     ]
     errors_high = [
-        results['password_registration_total']['max'] - results['password_registration_total']['mean'],
-        results['fido2_registration_total']['max'] - results['fido2_registration_total']['mean'],
-        results['totp_setup_total']['max'] - results['totp_setup_total']['mean']
+        results.get('password_registration_total', {}).get('max', 0) - means[0] if means[0] > 0 else 0,
+        results.get('fido2_registration_total', {}).get('max', 0) - means[1] if means[1] > 0 else 0,
+        results.get('totp_setup_total', {}).get('max', 0) - means[2] if means[2] > 0 else 0
     ]
     
     bars = ax.bar(methods, means, 
@@ -102,19 +102,19 @@ def create_login_comparison(results):
     
     methods = ['Password', 'TOTP', 'FIDO2']
     means = [
-        results['password_login_total']['mean'],
-        results['totp_login_total']['mean'],
-        results['fido2_login_total']['mean']
+        results.get('password_login_total', {}).get('mean', 0),
+        results.get('totp_login_total', {}).get('mean', 0),
+        results.get('fido2_login_total', {}).get('mean', 0)
     ]
     errors_low = [
-        results['password_login_total']['mean'] - results['password_login_total']['min'],
-        results['totp_login_total']['mean'] - results['totp_login_total']['min'],
-        results['fido2_login_total']['mean'] - results['fido2_login_total']['min']
+        means[0] - results.get('password_login_total', {}).get('min', 0) if means[0] > 0 else 0,
+        means[1] - results.get('totp_login_total', {}).get('min', 0) if means[1] > 0 else 0,
+        means[2] - results.get('fido2_login_total', {}).get('min', 0) if means[2] > 0 else 0
     ]
     errors_high = [
-        results['password_login_total']['max'] - results['password_login_total']['mean'],
-        results['totp_login_total']['max'] - results['totp_login_total']['mean'],
-        results['fido2_login_total']['max'] - results['fido2_login_total']['mean']
+        results.get('password_login_total', {}).get('max', 0) - means[0] if means[0] > 0 else 0,
+        results.get('totp_login_total', {}).get('max', 0) - means[1] if means[1] > 0 else 0,
+        results.get('fido2_login_total', {}).get('max', 0) - means[2] if means[2] > 0 else 0
     ]
     
     bars = ax.bar(methods, means,
@@ -144,13 +144,12 @@ def create_fido2_breakdown(results):
     fig, ax = plt.subplots(figsize=(3.5, 2.5))
     
     # Components of FIDO2 registration
-    components = ['Start', 'WebAuthn\nCreate', 'Finish']
+    components = ['Start', 'Finish']
     values = [
-        results['fido2_register_start']['mean'],
-        results['fido2_webauthn_create']['mean'],
-        results['fido2_register_finish']['mean']
+        results.get('fido2_register_start', {}).get('mean', 0),
+        results.get('fido2_register_finish', {}).get('mean', 0)
     ]
-    colors = [COLORS['fido2_start'], COLORS['fido2_webauthn'], COLORS['fido2_finish']]
+    colors = [COLORS['fido2_start'], COLORS['fido2_finish']]
     
     bars = ax.bar(['FIDO2\nRegistration'], [sum(values)],
                   color=COLORS['fido2'], alpha=0.3)
@@ -176,15 +175,146 @@ def create_fido2_breakdown(results):
     plt.close()
     print(f"Generated: {FIGURES_DIR / 'fido2-registration-breakdown.pdf'}")
 
+def create_resource_intensity_charts(results):
+    """Create charts for resource intensity metrics (CPU, memory, DB queries).
+    Uses backend-only measurements, excluding end-to-end/client-side operations."""
+    # Check if we have any data
+    if not results:
+        print("WARNING: results.json is empty. Please run the latency tests first:")
+        print("  cd backend && ./run_tests.sh tests/test_latency_*.py")
+        return
+    
+    # CPU Time Comparison - Backend operations only
+    fig, ax = plt.subplots(figsize=(4.5, 2.5))
+    
+    methods = ['Password', 'FIDO2', 'TOTP']
+    
+    # For FIDO2, combine start + finish (backend operations only, excludes client-side credential generation)
+    fido2_reg_start_cpu = results.get('fido2_registration_start_cpu_ms', {}).get('mean', 0)
+    fido2_reg_finish_cpu = results.get('fido2_registration_finish_cpu_ms', {}).get('mean', 0)
+    fido2_reg_cpu = fido2_reg_start_cpu + fido2_reg_finish_cpu if (fido2_reg_start_cpu > 0 or fido2_reg_finish_cpu > 0) else results.get('fido2_registration_total_cpu_ms', {}).get('mean', 0)
+    
+    cpu_times = [
+        results.get('password_registration_total_cpu_ms', {}).get('mean', 0),
+        fido2_reg_cpu,
+        results.get('totp_setup_total_cpu_ms', {}).get('mean', 0)
+    ]
+    
+    # Check if all values are zero (no data)
+    if all(v == 0 for v in cpu_times):
+        print("WARNING: No CPU time data found. Make sure latency tests have been run.")
+        print("  Expected keys: password_registration_total_cpu_ms, fido2_registration_start_cpu_ms, etc.")
+    
+    bars = ax.bar(methods, cpu_times,
+                  color=[COLORS['password'], COLORS['fido2'], COLORS['totp']],
+                  alpha=0.8)
+    
+    ax.set_ylabel('CPU Time (ms)')
+    ax.set_title('Registration/Setup CPU Time Comparison')
+    ax.grid(axis='y', alpha=0.3, linestyle='--')
+    
+    # Set y-axis minimum to 0, but allow it to scale if there's data
+    if any(v > 0 for v in cpu_times):
+        ax.set_ylim(bottom=0)
+    else:
+        # If no data, set a small range so bars are visible
+        ax.set_ylim(0, 1)
+        ax.text(0.5, 0.5, 'No data available\nRun latency tests first', 
+                ha='center', va='center', transform=ax.transAxes, fontsize=10, 
+                bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.5))
+    
+    for bar, val in zip(bars, cpu_times):
+        if val > 0:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{val:.1f}',
+                    ha='center', va='bottom', fontsize=9)
+    
+    plt.tight_layout()
+    plt.savefig(FIGURES_DIR / 'cpu-time-comparison.pdf')
+    plt.close()
+    print(f"Generated: {FIGURES_DIR / 'cpu-time-comparison.pdf'}")
+    
+    # Database Query Count Comparison - Backend operations only
+    fig, ax = plt.subplots(figsize=(4.5, 2.5))
+    
+    # For FIDO2, combine start + finish (backend operations only)
+    fido2_reg_start_db = results.get('fido2_registration_start_db_queries', {}).get('mean', 0)
+    fido2_reg_finish_db = results.get('fido2_registration_finish_db_queries', {}).get('mean', 0)
+    fido2_reg_db = fido2_reg_start_db + fido2_reg_finish_db if (fido2_reg_start_db > 0 or fido2_reg_finish_db > 0) else results.get('fido2_registration_total_db_queries', {}).get('mean', 0)
+    
+    db_queries = [
+        results.get('password_registration_total_db_queries', {}).get('mean', 0),
+        fido2_reg_db,
+        results.get('totp_setup_total_db_queries', {}).get('mean', 0)
+    ]
+    
+    bars = ax.bar(methods, db_queries,
+                  color=[COLORS['password'], COLORS['fido2'], COLORS['totp']],
+                  alpha=0.8)
+    
+    ax.set_ylabel('Database Queries')
+    ax.set_title('Registration/Setup Database Query Count')
+    ax.grid(axis='y', alpha=0.3, linestyle='--')
+    
+    for bar, val in zip(bars, db_queries):
+        if val > 0:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{val:.0f}',
+                    ha='center', va='bottom', fontsize=9)
+    
+    plt.tight_layout()
+    plt.savefig(FIGURES_DIR / 'db-queries-comparison.pdf')
+    plt.close()
+    print(f"Generated: {FIGURES_DIR / 'db-queries-comparison.pdf'}")
+    
+    # Memory Usage Comparison - Backend operations only
+    fig, ax = plt.subplots(figsize=(4.5, 2.5))
+    
+    # For FIDO2, combine start + finish (backend operations only)
+    fido2_reg_start_mem = results.get('fido2_registration_start_memory_mb', {}).get('mean', 0)
+    fido2_reg_finish_mem = results.get('fido2_registration_finish_memory_mb', {}).get('mean', 0)
+    fido2_reg_mem = fido2_reg_start_mem + fido2_reg_finish_mem if (fido2_reg_start_mem > 0 or fido2_reg_finish_mem > 0) else results.get('fido2_registration_total_memory_mb', {}).get('mean', 0)
+    
+    memory_deltas = [
+        results.get('password_registration_total_memory_mb', {}).get('mean', 0),
+        fido2_reg_mem,
+        results.get('totp_setup_total_memory_mb', {}).get('mean', 0)
+    ]
+    
+    bars = ax.bar(methods, memory_deltas,
+                  color=[COLORS['password'], COLORS['fido2'], COLORS['totp']],
+                  alpha=0.8)
+    
+    ax.set_ylabel('Memory Delta (MB)')
+    ax.set_title('Registration/Setup Memory Usage')
+    ax.grid(axis='y', alpha=0.3, linestyle='--')
+    
+    for bar, val in zip(bars, memory_deltas):
+        if val > 0:
+            height = bar.get_height()
+            ax.text(bar.get_x() + bar.get_width()/2., height,
+                    f'{val:.2f}',
+                    ha='center', va='bottom', fontsize=9)
+    
+    plt.tight_layout()
+    plt.savefig(FIGURES_DIR / 'memory-usage-comparison.pdf')
+    plt.close()
+    print(f"Generated: {FIGURES_DIR / 'memory-usage-comparison.pdf'}")
+
 def main():
     """Generate all performance charts."""
     print("Loading results...")
     results = load_results()
     
-    print("Generating charts...")
+    print("Generating latency charts...")
     create_registration_comparison(results)
     create_login_comparison(results)
     create_fido2_breakdown(results)
+    
+    print("\nGenerating resource intensity charts...")
+    create_resource_intensity_charts(results)
     
     print("\nAll charts generated successfully!")
     print(f"Output directory: {FIGURES_DIR}")
