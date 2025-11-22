@@ -239,3 +239,87 @@ async def test_password_system_no_integrity_protection(client: AsyncClient, test
     # This demonstrates the tampering vulnerability of password-only systems
 
 
+@pytest.mark.asyncio
+async def test_password_tampering_attack(client: AsyncClient, test_db, test_redis):
+    """
+    Test that a password login request can be tampered with in transit.
+    
+    This simulates a Man-in-the-Middle (MitM) attack where the attacker
+    intercepts a legitimate login request and modifies the payload
+    (e.g., swapping credentials) without the server detecting the change.
+    
+    In a real scenario, this could involve:
+    1. Downgrading the connection (stripping TLS)
+    2. Modifying the request body
+    3. Forwarding to the server
+    
+    Since there is no application-layer signature (unlike FIDO2), the server
+    cannot distinguish the tampered request from a legitimate one.
+    """
+    # 1. Setup: Create a victim user and an attacker user
+    victim_username = "victim_user"
+    victim_password = "VictimPassword123!"
+    
+    attacker_username = "attacker_user"
+    attacker_password = "AttackerPassword123!"
+    
+    # Register victim
+    await client.post("/api/v1/password/register", json={
+        "username": victim_username,
+        "password": victim_password,
+        "display_name": "Victim User"
+    })
+    
+    # Register attacker
+    await client.post("/api/v1/password/register", json={
+        "username": attacker_username,
+        "password": attacker_password,
+        "display_name": "Attacker User"
+    })
+    
+    # 2. Simulate Client: Construct a legitimate login request for the victim
+    # This represents what the victim's browser intends to send
+    original_payload = {
+        "username": victim_username,
+        "password": victim_password
+    }
+    
+    # 3. Simulate MitM Attack: Tamper with the payload
+    # The attacker intercepts the request and swaps the credentials to their own
+    # or modifies other fields. Here we swap credentials to log in as attacker
+    # while the victim thinks they are logging in.
+    tampered_payload = original_payload.copy()
+    tampered_payload["username"] = attacker_username
+    tampered_payload["password"] = attacker_password
+    
+    # 4. Send the TAMPERED payload to the server
+    # The server receives the modified data.
+    response = await client.post(
+        "/api/v1/password/login",
+        json=tampered_payload
+    )
+    
+    # 5. Assertions
+    # The server accepts the tampered request because it's valid JSON and valid credentials.
+    # It has NO WAY to know that the original sender intended "victim_username".
+    assert response.status_code == 200
+    
+    data = response.json()
+    assert "token" in data
+    
+    # Verify we are logged in as the attacker, not the victim
+    # This proves the tampering was successful and undetected by the server
+    import jwt
+    # We use the same secret as in the app (default in config or test env)
+    # In test env, it is "test-secret-key-for-testing-only-do-not-use-in-production"
+    token = data["token"]
+    decoded = jwt.decode(token, options={"verify_signature": False})
+    
+    assert decoded["sub"] == attacker_username
+    
+    # Contrast with FIDO2:
+    # If this were FIDO2, the 'authData' and 'clientDataJSON' would be signed.
+    # Changing the username or any other signed field would invalidate the signature,
+    # and the server would reject the request (as seen in test_fido2_challenge_tampering_protection).
+
+
