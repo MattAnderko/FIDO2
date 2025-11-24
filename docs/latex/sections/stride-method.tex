@@ -1,19 +1,16 @@
 \section{STRIDE Threat Modelling Framework}\label{sec:stride}
-
-The STRIDE threat modeling framework helps to group real-world attacks into six types. Each type targets a different part of the authentication process. This section maps the vulnerabilities discussed earlier to STRIDE categories and shows how each of the three authentication methods handles them.
+When evaluating the security of the authentication methods, we applied a framework that allow us to analyse them and compare their security, the tool of our choosing was the STRIDE threat modeling framework. It creates an abstraction of real-world attacks by grouping them into the following types:
 
 \vspace{0.3em}
 \noindent
 \textbf{STRIDE categories:}
 \begin{itemize}
-  \item \textbf{Spoofing}: when an attacker pretends to be a valid user to gain access
-  \item \textbf{Tampering}: when an attacker changes messages or data during login
-  \item \textbf{Repudiation}: when a user denies doing an action, like logging in
-  \item \textbf{Information Disclosure}: when sensitive data like passwords or OTPs are leaked
-  \item \textbf{Denial of Service}: when the attacker blocks the user from logging in
-  \item \textbf{Elevation of Privilege}: when someone gets more access than they should
+  \item \textbf{Spoofing}: In a spoofing attack the bad actor pretends to be a valid user to gain access, this may happen via credential theft or session hijacking.
+  \item \textbf{Tampering}: Tampering attacks mainly focus changing on the message content in transit, while staying undetected.
+  \item \textbf{Repudiation}: Repudiation can be defined by successfully stating that an action was not performed by the user.
+  \item \textbf{Information Disclosure}: Information disclosure is the category, where sensitive data gets exposed to actors with no permission to access it.
+  \item \textbf{Denial of Service}: In a DoS attack one or more user loses access to the service. This may  happen by flooding the server with requests or by getting users locked out of their accounts. 
+  \item \textbf{Elevation of Privilege}: Elevation of privilege happens when bad actors get admin rights. This may happen by stealing credentials or adding themselves to more privileged groups.
 \end{itemize}
 
-Each vulnerability from Section~\ref{sec:common-vulnerabilities} fits one or more of these categories. Table~\ref{tab:stride-vuln-matrix} (see Section~\ref{sec:tables}) shows which threat is mapped where, and what to expect from password-only, 2FA, and FIDO2-based systems.
-
-The STRIDE mapping helps compare which attack types are stopped or remain possible in each authentication setup. This forms the basis of the analysis in Section~\ref{sec:stride-analysis}, where each system’s real threat resistance is examined in more detail.
+ Table~\ref{tab:stride-vuln-matrix} (see Section~\ref{sec:tables}) shows that each vulnerability from Section~\ref{sec:common-vulnerabilities} could be mapped to one or more of these categories. This forms the basis of the analysis in Section~\ref{sec:stride-analysis}, where each system's real threat resistance is examined in more detail.
