@@ -12,70 +12,43 @@ The security tests were implemented in the \texttt{pytest} framework. To ensure 
     \item \textbf{Hardware Simulation:} For FIDO2 tests, we created a \texttt{MockAuthenticator} software component, that was used for cryptographic signing and key management, bypassing the requirement for a WebAuthn authenticator Hardware, allowing us to generate both valid and invalid authentication data to test the server's response to various attack scenarios.
 \end{itemize}
 
-\subsection{Spoofing}
-\subsubsection{Expectations}
-\begin{itemize}
-    \item \textbf{Password-only:} Password-only systems are the most vulnerable to phishing atttack, since they entirely rely on the user's better judgement, there is no origin binding, or relying on a safe third party. 
-    \item \textbf{TOTP/2FA:} 2FA creates a much stronger barrier against phishing attacks, since it provides another wall of defence, in the form of a second factor. Depending on the type of this factor attackers can use different ways to bypass it mostly via adversary-in-the-middle proxies, or sim swapping.
-    \item \textbf{FIDO2/WebAuthn:} FIDO2 provides strong protection against spoofing through origin binding and digital signature. Attackers cant use the malicius sites to redirect the user to a fake site, since the origin binding ensures that the authentication is only valid for the specific site.
-\end{itemize}
-\subsubsection{Results}
+\subsubsection{Spoofing}
 \begin{itemize}
     \item \textbf{Password-only:} Impersonation using only a password was straightforward via a credential stuffing attack. When the test case used a simulated "leaked" password from a different site, the server accepted the attempt. This confirmed that the password was not origin-bound, making the account vulnerable if credentials are reused.
     \item \textbf{2FA:} To test TOTP, we executed a replay attack. By generating a valid TOTP code and immediately passing it to the server, we simulated an attacker intercepting the code in real-time. The server accepted the code, showing that TOTP does not inherently prevent replay attacks.
     \item \textbf{FIDO2/WebAuthn:} We simulated a phishing attempt by using \texttt{MockAuthenticator} to log in with an incorrect RP ID. This mimics a user trying to log in on a fake website. The server correctly rejected the login because the cryptographic signature did not match our expected origin, proving its resistance to phishing.
 \end{itemize}
 
-\subsection{Tampering}
-\subsubsection{Expectations}
-\begin{itemize}
-    \item \textbf{Password-only:} Password systems offer no protection against message tampering beyond TLS. If TLS is compromised or misconfigured, an attacker can modify login requests or responses. There is no cryptographic integrity protection for the authentication flow itself.
-    \item \textbf{TOTP/2FA:} Similar to password-only, TOTP relies primarily on TLS for tampering protection. While the OTP code itself cannot be easily modified (it's a time-based value), the authentication flow can be intercepted and modified by an adversary-in-the-middle, allowing OTP relay attacks.
-    \item \textbf{FIDO2/WebAuthn:} FIDO2's challenge-response mechanism provides strong tampering protection. Each authentication includes a server-generated challenge that is cryptographically signed by the authenticator. Any modification to the challenge or response invalidates the signature, preventing tampering attacks even if TLS is compromised.
-\end{itemize}
-
+\subsubsection{Tampering}
 \begin{itemize}
     \item \textbf{Password only and 2FA:} Since password-only and 2FA systems usually entirely rely on TLS (or even the old SSL) for integrity, in our tests we were able to modify the user's credentials to that of an attacker, without the server detecting it (In the simulated case where there is no TLS layer. This can be done by attacks like SSL stripping)
     \item \textbf{FIDO2/WebAuthn:} The FIDO2 suite uses digital signatures, when we tried modifying it along the data payload in a valid FIDO2 response, the server rejected every such request. This confirmed that FIDO2  systems are able to verify the integrity of the data, independent of the network layer.
 \end{itemize}
 
-\subsection{Repudiation}
+\subsubsection{Repudiation}
 Repudiation involves a user denying they performed an action. We tested the system's ability to provide proof of identity.
-\subsubsection{Expectations}
-\subsubsection{Results}
-
 \begin{itemize}
     \item \textbf{Password only and 2FA:} The tests showed that password and TOTP logs are not completely secure, the server knows the secrets, database administrators could forge log entries. There is no proof that ties an action to a specific user.
     \item \textbf{FIDO2/WebAuthn:} A digital signature consists of hash encrypted with the user's unique private key, the server stores this signature, which provides strong evidence that the specific user authorized the action. Our test confirmed that the server can verify the signature, and that it is unique to the user.
 \end{itemize}
 
-\subsection{Information Disclosure}
+\subsubsection{Information Disclosure}
 Information disclosure when sensitive data gets exposed. We simulated a database breach to see what an attacker would gain.
-\subsubsection{Expectations}
-\subsubsection{Results}
 \begin{itemize}
     \item \textbf{Password only and 2FA:} For password systems, the test retrieved password hashes, which can be cracked offline. In the case of the 2FA TOTP system, the test retrieved the shared secrets, allowing an attacker to generate valid codes.
     \item \textbf{FIDO2/WebAuthn:} For FIDO2, the test confirmed that the database contains only public keys. We verified that these keys cannot be used to authenticate, meaning a database breach does not compromise user accounts.
 \end{itemize}
 
-\subsection{Denial of Service (DoS)}
+\subsubsection{Denial of Service (DoS)}
 In a DoS attack, the goal is to make the system unusable, either on a global scale or for a specific user. We tested how rate limiting can be used in these types of attacks.
-\subsubsection{Expectations}
-\subsubsection{Results}
 \begin{itemize}
     \item \textbf{Password only and 2FA:} We sent many invalid password attempts to a user account. The system locked the account to prevent guessing. This confirmed that the security mechanism itself can be used to deny access to legitimate users. This could be considered a fair tradeoff, as it prevents brute force attacks.
     \item \textbf{FIDO2/WebAuthn:} We sent invalid requests to the FIDO2 endpoint. The server rejected the invalid signatures efficiently. Because there is no shared secret to guess, the system does not need to lock accounts as aggressively, making it more resilient to this type of attack.
 \end{itemize}
 
-\subsection{Elevation of Privilege}
+\subsubsection{Elevation of Privilege}
 Elevation of privilege involves gaining higher access rights. We tested the security of administrative accounts.
-\subsubsection{Expectations}
-\subsubsection{Results}
 \begin{itemize}
     \item \textbf{Password only and 2FA:} We simulated a phishing attack against an administrator. For password and TOTP systems, obtaining the credentials allowed full access to the admin account.
     \item \textbf{FIDO2/WebAuthn:} For FIDO2, we showed that knowing the admin's username was not enough. The test confirmed that authentication failed without the physical security key, proving that remote attackers cannot elevate privileges even if they have user information.
 \end{itemize}
-
-\subsection{Summary}
-
-The empirical tests confirmed the theoretical analysis. Password and TOTP systems showed vulnerabilities inherent to shared secrets, such as susceptibility to phishing and lack of non-repudiation. FIDO2/WebAuthn demonstrated strong resistance to these threats through the use of public-key cryptography and origin binding. The results validate that FIDO2 provides a significant security improvement over legacy authentication methods.
