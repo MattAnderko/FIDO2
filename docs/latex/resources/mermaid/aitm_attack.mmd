@@ -1,0 +1,16 @@
+sequenceDiagram
+    autonumber
+    participant User
+    participant Attacker as Adversary (Proxy)
+    participant Service as Service
+
+    User->>Attacker: Request (HTTP/Compromised)
+    Attacker->>Service: Request (Valid TLS)
+
+    Service-->>Attacker: Response (Original)
+    Attacker->>Attacker: Modify Content/Inject Malicious Script
+    Attacker-->>User: Response (Modified)
+
+    User->>Attacker: Submit Credentials/Data
+    Attacker->>Attacker: Capture Data
+    Attacker->>Service: Forward Credentials

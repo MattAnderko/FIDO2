@@ -15,7 +15,7 @@ The security tests were implemented in the \texttt{pytest} framework. To ensure 
 \subsubsection{Spoofing}
 \begin{itemize}
     \item \textbf{Password-only:} Impersonation using only a password was straightforward via a credential stuffing attack. When the test case used a simulated "leaked" password from a different site, the server accepted the attempt. This confirmed that the password was not origin-bound, making the account vulnerable if credentials are reused.
-    \item \textbf{2FA:} To test TOTP, we executed a replay attack. By generating a valid TOTP code and immediately passing it to the server, we simulated an attacker intercepting the code in real-time. The server accepted the code, showing that TOTP does not inherently prevent replay attacks.
+    \item \textbf{2FA:} To test TOTP, we executed a relay attack. By generating a valid TOTP code and immediately passing it to the server, we simulated an attacker intercepting the code in real-time. The server accepted the code, showing that TOTP does not inherently prevent relay attacks.
     \item \textbf{FIDO2/WebAuthn:} We simulated a phishing attempt by using \texttt{MockAuthenticator} to log in with an incorrect RP ID. This mimics a user trying to log in on a fake website. The server correctly rejected the login because the cryptographic signature did not match our expected origin, proving its resistance to phishing.
 \end{itemize}
 

@@ -1,23 +1,35 @@
 {
   "latex-workshop.latex.tools": [
     {
-      "name": "build-mermaid",
-      "command": "bash",
+      "name": "xelatex",
+      "command": "xelatex",
       "args": [
-        "-c",
-        "mkdir -p resources/images && for f in resources/mermaid/*.mmd; do [ -f \"$f\" ] && mmdc -i \"$f\" -o \"resources/images/$(basename ${f%.mmd}.png)\" -w 1050 --backgroundColor transparent -c resources/mermaid/mermaid-config.json; done"
+        "-synctex=1",
+        "-interaction=nonstopmode",
+        "-file-line-error",
+        "%DOC%"
       ]
     },
     {
-      "name": "xelatex",
-      "command": "xelatex",
-      "args": ["-synctex=1","-interaction=nonstopmode","-file-line-error","%DOC%"]
+      "name": "bibtex",
+      "command": "bibtex",
+      "args": [
+        "%DOCFILE%"
+      ]
     }
   ],
   "latex-workshop.latex.recipes": [
-    { "name": "mermaid + xelatex", "tools": ["build-mermaid", "xelatex", "xelatex"] }
+    {
+      "name": "xelatex -> bibtex -> xelatex",
+      "tools": [
+        "xelatex",
+        "bibtex",
+        "xelatex",
+        "xelatex"
+      ]
+    }
   ],
   "latex-workshop.latex.autoBuild.run": "onSave",
-  "latex-workshop.latex.autoBuild.recipe": "mermaid + xelatex",
+  "latex-workshop.latex.autoBuild.recipe": "xelatex",
   "latex-workshop.latex.rootFile.doNotPrompt": true
 }

@@ -1,33 +1,37 @@
 \section{Implementation}\label{sec:implementation}
-This section documents the packages used and how components interact in the prototype.
+This section talks about the components of, and how they interact in the prototype, that we will run our STRIDE testing and performance analysis on, we will also talk about the packages used in the backend, this is important to reflect on in when evaluating the results. 
 
 \subsection{Backend Packages}
-The backend is built with FastAPI and uses the packages listed in Table~\ref{tab:backend-packages}. FastAPI provides asynchronous request handling and automatic OpenAPI documentation. The `fido2` library (v2.0) handles WebAuthn protocol operations, including challenge generation, attestation verification, and assertion validation. SQLAlchemy serves as the ORM layer connecting to PostgreSQL, while Redis stores ephemeral state such as WebAuthn challenges and password reset tokens.
+We use the backend packages, listed in Table~\ref{tab:backend-packages}. Python's FastAPI framework handles requests, while `pydantic` ensures data integrity. For our database we use PostgreSQL (via `psycopg2-binary`) as it is FOSS and is widely used in the industry, to link our database to our application we use `sqlalchemy`, which serves as an ORM layer, so we can interact with the database in a type-safe way. The package `redis`stores state objects, like WebAuthn challenges. Session management is done by `pyjwt` package, it has the job of issuing JSON Web Tokens upon successful login.
 
-\begin{table*}[t]
+We implement different authentication methods:
+\begin{itemize}
+    \item \textbf{Password}:  For hashing the user's password we use the `bcrypt` library, configured with a work factor of 12 salt rounds to align with OWASP recommendations~\cite{OWASPPasswordStorage}, according to the guidelines, this should ensure that stored credentials remain resistant to rainbow table and brute-force attacks while maintaining acceptable server performance (200ms).
+    \item \textbf{2FA (TOTP)}: Besides the password management we also had to implement a 2FA system, using the Time-based One-Time Password algorithm. We chose the `pyotp` library, supported by `qrcode` for provisioning, we follow RFC 6238~\cite{RFC6238} during the implementation, we used HMAC-SHA1 based OTP, requiring a 6 digit code.
+    \item \textbf{FIDO2/WebAuthn}: For credential registration and authentication we use the  official `fido2` library with `cbor2` for binary data decoding.
+\end{itemize}
+
+\begin{table}[htbp]
 \centering
 \small
 \caption{Backend Python packages and their roles}
 \label{tab:backend-packages}
-\begin{tabular}{p{2.5cm}p{11cm}}
+\begin{tabular}{p{2.5cm}p{5.5cm}}
   \toprule
   Package & Role \\
   \midrule
-  `fastapi` & Web framework providing REST API endpoints and request routing \\
-  `uvicorn` & ASGI server running the FastAPI application \\
-  `fido2` & WebAuthn protocol implementation for credential registration and authentication \\
-  `sqlalchemy` & ORM for database operations and model definitions \\
-  `psycopg2-binary` & PostgreSQL database adapter \\
-  `pydantic` & Data validation and settings management \\
-  `redis` & State store for temporary challenge data \\
+  `fastapi` & Web framework providing REST API\\
+  `uvicorn` & ASGI server, runs FastAPI\\
+  `fido2` & FIDO2 credential handling\\
+  `sqlalchemy` & ORM to access DB \\
+  `psycopg2` & PostgreSQL database adapter\\
+  `pydantic` & Data validation management \\
+  `redis` & State store for  challenge data \\
   `pyjwt` & JWT token generation and verification \\
-  `cbor2` & CBOR encoding/decoding for FIDO2 binary data \\
-  `bcrypt` & Password hashing with configurable work factor \\
+  `cbor2` & CBOR encoding/decoding binary data\\
+  `bcrypt` & Password hashing \\
   `pyotp` & TOTP code generation and verification \\
-  `qrcode` & QR code generation for TOTP secret enrollment \\
+  `qrcode` & QR code generation for TOTP \\
   \bottomrule
 \end{tabular}
-\end{table*}
-
-\subsection{Component Interactions}
-The backend routes HTTP requests through dedicated routers (`fido`, `password`, `totp`) mounted under `/api/v1`. Each router queries the unified `Credential` model via SQLAlchemy, which persists data to PostgreSQL. Ephemeral state (WebAuthn challenges, password reset tokens) is stored in Redis with namespaced keys. Successful authentication returns a JWT token issued by `pyjwt` for session management.
+\end{table}

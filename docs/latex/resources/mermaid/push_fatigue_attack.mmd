@@ -1,15 +1,15 @@
 sequenceDiagram
   autonumber
   participant Attacker
-  participant MFA as Push Provider
+  participant PushProvider as Push Provider
   participant User
 
-  Attacker->>MFA: send push request
-  MFA-->>User: push notification
-  User-->>MFA: ignore request
+  Attacker->>PushProvider: send push request
+  PushProvider-->>User: push notification
+  User-->>PushProvider: ignore request
   loop repeated
-    Attacker->>MFA: send push request
-    MFA-->>User: push notification flood
+    Attacker->>PushProvider: send push request
+    PushProvider-->>User: push notification flood
   end
-  User->>MFA: approve from fatigue
-  MFA-->>Attacker: access granted
+  User->>PushProvider: approve from fatigue
+  PushProvider-->>Attacker: access granted

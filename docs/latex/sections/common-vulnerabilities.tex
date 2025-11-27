@@ -11,6 +11,12 @@ Users often choose simple passwords, making them easy targets for brute-force at
 \subsection{Credential Stuffing and Password Reuse}
 Credential stuffing exploits password reuse across websites. In the event of a databreach the user's password may get leaked, this creates an opportunity for bad actors, who then use the credentials on other sites to try to gain access to other accounts.\cite{Nisenoff2023PasswordReuse}. The process can be well automated, thus the reuse of credentials turns one breach into many.
 
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{resources/images/credential_stuffing.png}
+\caption{Credential Stuffing Attack Flow}
+\end{figure}
+
 
 \subsection{Social Engineering Attacks}
 Many attacks rely on human gullability instead of technical flaws. Phishing, SIM swap, and push fatigue attacks are such attacks.
@@ -40,3 +46,19 @@ Push-based MFA can be exploited by flooding users with repeated prompts until th
 \includegraphics[width=\columnwidth]{resources/images/push_fatigue_attack.png}
 \caption{Push fatigue attack sequence}
 \end{figure}
+
+
+\subsection{Server-Side Data Breaches}
+When there is a data breach in the authentication server's database, password hashes or shared secrets (like TOTP seeds) can get exposed, and then the attackers can crack these sensitive information offline to gain access to the accounts \cite{OWASPPasswordStorage}.
+
+\subsection{Adversary-in-the-Middle tampering}
+Interception and modification of traffic between the client and server by a third party falls into the category of tampering. One would say, that TLS provides transport security, but by itself it does not prevent manipulation if it gets compromised or stripped \cite{OWASPMitM}.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{resources/images/aitm_attack.png}
+\caption{Replay type AiTM attack flow}
+\end{figure}
+
+\subsection{Denial of Service via Account Lockout}
+Sometimes security measures themselves can be weaponized against the users or the service, attackers trigger account lockouts by repeatedly submitting invalid credentials for a target user. This exploits the lockout policy, while it keeps the user safe from brute-force attacks, it can lead to them not being able to access their account \cite{NISTSP80063B}.
