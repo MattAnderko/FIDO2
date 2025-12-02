@@ -1,0 +1,9 @@
+\section{Conclusion}
+
+This paper presented a comparative analysis of Password-only, 2FA (TOTP), and FIDO2/WebAuthn authentication mechanisms, evaluating them using empirical STRIDE threat analysis, and performance metrics.
+
+Our security analysis confirms that while 2FA improves upon password-only systems by adding a layer of defense, though it only acts as a patch and doesn't address the underlying issues, FIDO2 on the other hand fundamentally addresses these vulnerabilities 
+
+FIDO2 is not only the safest, but also the show the best performance by offloading  heavy cryptographic operations to the client device(that are usually underused nowadays), reducing server-side processing time, resulting in lower latency and reduced CPU overhead.
+
+In conclusion, FIDO2 represents a significant leap forward in authentication technology, it may be rightfully called the Kingslayer of authentication methods, even with the downside of being reliant on the client device.

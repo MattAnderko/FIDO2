@@ -1,19 +1,19 @@
 \section{Performance and Resource Analysis}\label{sec:performance-resource}
 
-This section presents an empirical evaluation of the performance and resource consumption of the implemented authentication methods. The analysis focuses on end-to-end latency, server-side CPU overhead, and database load, providing a comparative assessment of Password-only, TOTP-based 2FA, and FIDO2/WebAuthn systems.
+This section presents an empirical evaluation of the performance and resource consumption of the implemented authentication methods. We've seen that FIDO2 is the our most secure technology, but does it mean it will lack the performance of legacy systems?  Now we will delve into the end-to-end latency, server-side CPU overhead, and database load, comparing how the three implemented methods fared.
 
 \subsection{Latency Analysis}
 
-We measured the end-to-end latency for registration and login operations to evaluate the user experience. The tests were conducted in an isolated environment to minimize external network variance.
+We analyze the latency of registration and login operations, excluding the time spent on the client device, research indicates this introduces a delay of 50--200 ms depending on the device \cite{wuersching2023platformvsroaming}. We think this is a more accurate representation of the server-side performance. The tests are conducted in an isolated environment to minimize external factor and lessen the scope of testing.
 
 \subsubsection{Registration Performance}
-Figure~\ref{fig:registration-comparison} illustrates the registration latency for each method.
+Figure~\ref{fig:registration-comparison} shows the registration latencies for each method.
 
-\textbf{Password Registration ($\approx$216 ms):} The high latency is intentional. We use the bcrypt hashing algorithm. It is designed to be slow to resist brute-force attacks \cite{Ma2022ProspectsPassword}. This consumes significant server time.
+\textbf{Password Registration ($\approx$216 ms):} As we have mentioned in \ref{sec:implementation}, for the bcrypt hashing to be secure we have to use at least 10 salt rounds, for our implementation we use 12 salt round, which means that the algorithm runs 12 times and takes about 216 ms to hash a password.
 
-\textbf{TOTP Setup ($\approx$228 ms):} This method inherits the latency of password registration. It adds a small overhead for secret generation. The QR code generation adds negligible time. The bcrypt step remains the bottleneck.
+\textbf{2FA Setup ($\approx$228 ms):} This method inherits the latency of password registration, and also adds a negligibly small overhead for secret generation, thus bcrypt step remains the bottleneck.
 
-\textbf{FIDO2 Registration ($\approx$108 ms):} This is the fastest server-side method. The server only verifies a signature. It does not perform expensive hashing. The complex key generation happens on the client device \cite{lyastani2020kingslayer}.
+\textbf{FIDO2 Registration ($\approx$108 ms):} Since keygeneration happens on the client hardware, the server only has to verify the signature, not require to do any computationally expensive operations, like the aforementioned hashing \cite{lyastani2020kingslayer}.
 
 \begin{figure}[h]
 \centering
@@ -22,32 +22,31 @@ Figure~\ref{fig:registration-comparison} illustrates the registration latency fo
 \label{fig:registration-comparison}
 \end{figure}
 
+We can see that all the latencies are still within the realm of acceptability, but FIDO2 might be a better alternative at high loads, like at opening days of ticket sales for large scale events.
 \subsubsection{Login Performance}
 Login latency results are shown in Figure~\ref{fig:login-comparison}.
 
-\textbf{Password Login ($\approx$216 ms):} The server must re-hash the input password. This takes the same amount of time as registration. It is the dominant cost factor.
+\textbf{Password Login ($\approx$216 ms):} Since the the dominant factor of hashing still has to be performed on each login we see similar latenci
 
-\textbf{TOTP Login ($\approx$216 ms):} This is statistically identical to password login. The HMAC-SHA1 check for the code is extremely fast. It takes fractions of a millisecond. It adds no perceptible delay \cite{Kasemodel2025BlueTOTP}.
+\textbf{2FA Login ($\approx$216 ms):} 2FA login is statistically identical to password login, since the HMAC-SHA1 check for the TOTP code is extremely fast.\cite{Kasemodel2025BlueTOTP}.
 
-\textbf{FIDO2 Login ($\approx$102 ms):} The server performs an ECDSA signature verification. This is mathematically efficient \cite{barbosa2021provable}. It is much faster than bcrypt hashing.
+\textbf{FIDO2 Login ($\approx$102 ms):} The server only has to perform a fast ECDSA signature verification\cite{barbosa2021provable}, making it much faster than bcrypt hashing.
 
 \begin{figure}[h]
 \centering
 \includegraphics[width=0.5\textwidth]{figures/login-latency-comparison.pdf}
-\caption{Login latency comparison. Password and TOTP latencies are nearly identical due to the dominance of bcrypt hashing.}
+\caption{Login latency comparison. Password and 2FA latencies are nearly identical due to the dominance of bcrypt hashing.}
 \label{fig:login-comparison}
 \end{figure}
-
-It is important to note that our server-side measurements for FIDO2 exclude the authenticator hardware processing time. Research indicates this introduces a delay of 50--200 ms depending on the device \cite{wuersching2023platformvsroaming}. Even with this delay, FIDO2 remains competitive while offering superior security.
 
 \subsection{Resource Usage}
 
 \subsubsection{Computational Overhead}
 Figure~\ref{fig:cpu-time-comparison} compares the server-side CPU time.
 
-\textbf{Password/TOTP:} These methods are CPU intensive. Every login burns server cycles on bcrypt. This limits scalability under high load.
+\textbf{Password/2FA:} These methods are CPU intensive. Every login burns server cycles on bcrypt. This limits scalability under high load.
 
-\textbf{FIDO2:} This method is CPU efficient. The heavy cryptography is offloaded to the user's device. The server only performs lightweight verification. This allows for higher throughput \cite{lyastani2020kingslayer}.
+\textbf{FIDO2:} This method is CPU efficient, since the heavy cryptography is offloaded to the user's device. The server only performs lightweight verification. \cite{lyastani2020kingslayer}.
 
 \begin{figure}[h]
 \centering
@@ -59,7 +58,7 @@ Figure~\ref{fig:cpu-time-comparison} compares the server-side CPU time.
 \subsubsection{Database Load}
 Database query analysis is shown in Figure~\ref{fig:db-queries-comparison}.
 
-\textbf{Registration:} Password and TOTP flows often require multiple steps. This results in more database queries. FIDO2 registration is streamlined. It requires fewer round-trips to the database.
+\textbf{Registration:} Password and 2FA flows often require multiple steps. This results in more database queries. FIDO2 registration is streamlined. It requires fewer round-trips to the database.
 
 \textbf{Login:} All methods are highly optimized. They typically require only a single lookup. Database load is not a differentiating factor for login.
 
