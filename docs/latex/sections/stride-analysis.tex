@@ -1,68 +1,62 @@
-e\section{STRIDE Analysis}\label{sec:stride-analysis}
+\section{STRIDE Analysis}\label{sec:stride-analysis}
 
-This section aims to further explain the threat mapping presented in Table~\ref{tab:stride-vuln-matrix}. 
-
+This section aims to explain how each system should fare in each STRIDE category.
 \subsection{Spoofing}
 
-\textbf{Password-only:} Password-only systems are the most vulnerable to phishing attacks and credential stuffing, since they entirely rely on the user's better judgement, there is no origin binding, or relying on a safe third party. 
-\textbf{Expectation:} [FAIL] The system should accept valid credentials, even if bad actor got them via credential stuffing from leaked databases.
+\begin{itemize}
+    \item \textbf{Password-only:} Password-only systems are the most vulnerable to phishing attacks and credential stuffing, since they entirely rely on the user's better judgement, there is no origin binding, or relying on a safe third party.
 
-\textbf{2FA:} 2FA creates a much stronger barrier against phishing attacks, since it provides another wall of defence, in the form of a second factor. Depending on the type of this factor attackers can use different ways to bypass it mostly via Real Time Phishing (Relay Attacks), or Sim Swapping.
-\textbf{Expectation:} [FAIL] The system should accept all valid TOTP code, and in a RTM attack the TOTP code arrives quickly before the validity window expires.
+    \item \textbf{2FA:} 2FA creates a much stronger barrier against phishing attacks, since it provides another wall of defence, in the form of a second factor. Depending on the type of this factor attackers can use different ways to bypass it mostly via Real Time Phishing (Relay Attacks), or Sim Swapping.
 
-\textbf{FIDO2/WebAuthn:} FIDO2's origin binding ensures that even if an attacker manages to phish the user, they can't redirect the user to a fake site, since the system would not accept the authentication request from a foreign RP ID.
-\textbf{Expectation:} [PASS] The system checks the relying party ID and if it does not match the server's origin it gets rejected.
+    \item \textbf{FIDO2/WebAuthn:} FIDO2's origin binding ensures that even if an attacker manages to phish the user, they can't redirect the user to a fake site, since the system would not accept the authentication request from a foreign RP ID.
+\end{itemize}
 
 \subsection{Tampering}
 
-\textbf{Password-only:} Usually password only systems offer no protection against message tampering beyond TLS. If TLS is compromised or misconfigured, an attacker can modify login requests or responses.
-\textbf{Expectation:} [FAIL] Without transport layer security, or in a simulated SSL stripping attack the system should be unable to detect if the credentials have been modified in transit.
+\begin{itemize}
+    \item \textbf{Password-only:} Usually password only systems offer no protection against message tampering beyond TLS. If TLS is compromised or misconfigured, an attacker can modify login requests or responses.
 
-\textbf{2FA:} 2FA TOTP systems also rely primarily on TLS for tampering protection. OTP codes can be be intercepted during transmission, for example in a relay attack where the attacker uses a proxy to phish the user's password and intercept the OTP code, then uses it to authenticate.
-\textbf{Expectation:} [FAIL] Similar to password systems, the 2FA system relies entirely on the transport layer.
+    \item \textbf{2FA:} 2FA TOTP systems also rely primarily on TLS for tampering protection. OTP codes can be be intercepted during transmission, for example in a relay attack where the attacker uses a proxy to phish the user's password and intercept the OTP code, then uses it to authenticate.
 
-\textbf{FIDO2/WebAuthn:} Since FIDO2 is a digitally signed challenge-response system, modification to the challenge or response invalidates the signature, making it virtually tamper-proof even if TLS is compromised.
-\textbf{Expectation:} [PASS] The system should reject any authentication attempt where the payload has been modified, as the digital signature will fail verification.
+    \item \textbf{FIDO2/WebAuthn:} Since FIDO2 is a digitally signed challenge-response system, modification to the challenge or response invalidates the signature, making it virtually tamper-proof even if TLS is compromised.
+\end{itemize}
 
-\subsection{Summary}
+\subsection{Repudiation}
 
-\textbf{Password-only:} There is no repudiation protection in a barebones password system, anyone with the password can authenticate and there is no way to link a particular login to a device or authenticator. Even logging can be manipulated since we can not be sure about the user's identity. 
-\textbf{Expectation:} [FAIL] The system should not be able to provide any proof of who performed an action.
+\begin{itemize}
+    \item \textbf{Password-only:} There is no repudiation protection in a barebones password system, anyone with the password can authenticate and there is no way to link a particular login to a device or authenticator. Even logging can be manipulated since we can not be sure about the user's identity.
 
-\textbf{2FA:} 2FA can provide some repudiation protection by logging OTP usage, but these logs can modified by attackers who manage to gain high enough privileges. Proving the who performed the authentication is difficult in these systems, since cryptographic proof of which device generated the OTP code is not provided by the standard.
-\textbf{Expectation:} [FAIL] The system should lack non-repudiation properties since the shared secret is stored on the server.
+    \item \textbf{2FA:} 2FA can provide some repudiation protection by logging OTP usage, but these logs can modified by attackers who manage to gain high enough privileges. Proving the who performed the authentication is difficult in these systems, since cryptographic proof of which device generated the OTP code is not provided by the standard.
 
-\textbf{FIDO2/WebAuthn:} Since the private keys are stored on the authenticator, and these encapsulated systems manage them FIDO2 offers strong repudiation protection, because other devices can not copy this information. The signature counter also helps detect credential cloning attempts.
-\textbf{Expectation:} [PASS] The system should provide strong non-repudiation, as the server stores a digital signature that can only be generated by the user's private key.
+    \item \textbf{FIDO2/WebAuthn:} Since the private keys are stored on the authenticator, and these encapsulated systems manage them FIDO2 offers strong repudiation protection, because other devices can not copy this information. The signature counter also helps detect credential cloning attempts.
+\end{itemize}
 
 \subsection{Information Disclosure}
 
-\textbf{Password-only:} Password systems are the most vulnerable to information disclosure, since reaches can expose password hashes that can be later used for offline cracking, the passwords can also be intercepted during transmittion
-\textbf{Expectation:} [FAIL] The system might reveal the password hashes stored, thus allowing offline cracking.
+\begin{itemize}
+    \item \textbf{Password-only:} Password systems are the most vulnerable to information disclosure, since breaches can expose password hashes that can be later used for offline cracking, the passwords can also be intercepted during transmission.
 
-\textbf{2FA:} TOTP reduces information disclosure risk compared to passwords.The TOTP secret is stored server-side and never transmitted, but if the database is compromised bad actors may be able to generate valid codes. 
-\textbf{Expectation:} [FAIL] Similar expectation as for password systems, even though they offer stronger protection
+    \item \textbf{2FA:} TOTP reduces information disclosure risk compared to passwords. The TOTP secret is stored server-side and never transmitted, but if the database is compromised bad actors may be able to generate valid codes.
 
-\textbf{FIDO2/WebAuthn:} In a FIDO2 system only public keys are stored server-side, and private keys never leave the authenticator, meaning that an attacker would not be able to access accounts and gain access to sensitive information.\textbf{Expectation:} [PASS] A database breach should only reveal public keys, no sensitive information should be exposed.
+    \item \textbf{FIDO2/WebAuthn:} In a FIDO2 system only public keys are stored server-side, and private keys never leave the authenticator, meaning that an attacker would not be able to access accounts and gain access to sensitive information.
+\end{itemize}
 
 \subsection{Denial of Service}
 
-\textbf{Password-only:} There are multiple DoS attack vectors for password systems, and bad actor might use brute-force, to overwhelm the whole server, but there are certain types of DoS attacks, that focus on attacking a single user via the server's security features like lockout mechanisms, where attackers might trigger lockouts by repeatedly attempting incorrect passwords, preventing legitimate users from accessing their accounts.
-\textbf{Expectation:} [FAIL] To prevent brute-force the system should lockout our attacker, but also the user they were trying to attack.
+\begin{itemize}
+    \item \textbf{Password-only:} There are multiple DoS attack vectors for password systems, and bad actors might use brute-force to overwhelm the whole server, but there are certain types of DoS attacks that focus on attacking a single user via the server's security features like lockout mechanisms, where attackers might trigger lockouts by repeatedly attempting incorrect passwords, preventing legitimate users from accessing their accounts.
 
-\textbf{2FA:} 2FA systems inherit the vulnerability of password-only systems, the lockout mechanism may shift to the OTP code level, but the attackers can also exhaust backup codes, flood users with OTP requests.
-\textbf{Expectation:} [FAIL] The system should exhibit similar lockout behavior to password systems when subjected to multiple invalid OTP attempts.
+    \item \textbf{2FA:} 2FA systems inherit the vulnerability of password-only systems, the lockout mechanism may shift to the OTP code level, but the attackers can also exhaust backup codes, flood users with OTP requests.
 
-\textbf{FIDO2/WebAuthn:} Passwordless authentication is resiliant to DoS attacks, its biggest vulnerability is the hardware doing the authentication, like wiping data from the authenticator in a CTRAPS attack, which factory rests private keys. On the server side there is no incentive to penalise user with lockouts, since there is no passwrod for the attackers to guess.
-\textbf{Expectation:} [PASS] The system should handle invalid authentication attempts without locking the user account, as there is no secret to protect from guessing.
+    \item \textbf{FIDO2/WebAuthn:} Passwordless authentication is resilient to DoS attacks, its biggest vulnerability is the hardware doing the authentication, like wiping data from the authenticator in a CTRAPS attack, which factory resets private keys. On the server side there is no incentive to penalise users with lockouts, since there is no password for the attackers to guess.
+\end{itemize}
 
 \subsection{Elevation of Privilege}
 
-\textbf{Password-only:} Since administrative accounts without the proper precaution can fall victim to a multitude of attacks, bad actors can gain initial access to administrative accounts and elevate their privileges.
-\textbf{Expectation:} [FAIL] Gaining access to an administrator's credentials should allow an attacker to fully take over the administrative account.
+\begin{itemize}
+    \item \textbf{Password-only:} Since administrative accounts without the proper precaution can fall victim to a multitude of attacks, bad actors can gain initial access to administrative accounts and elevate their privileges.
 
-\textbf{2FA:} 2FA and password only systems are similarly vulnerable to privilege elevation attacks, even though the additional factor makes them more difficult, with the proper safety measures in place seemingly impossible for attackers to gain access, the elevation of privilege is still possible with the aforementioned techniques
-\textbf{Expectation:} [FAIL] Phishing an administrator's password and OTP code should allow an attacker to elevate privileges.
+    \item \textbf{2FA:} 2FA and password only systems are similarly vulnerable to privilege elevation attacks, even though the additional factor makes them more difficult, with the proper safety measures in place seemingly impossible for attackers to gain access, the elevation of privilege is still possible with the aforementioned techniques.
 
-\textbf{FIDO2/WebAuthn:} For FIDO2 elevation of privilege attacks do not usually target the cryptographic protocol, but they may try to register their FIDO keys to a high privilege account, granting them access to rights they should not have.
-\textbf{Expectation:} [PASS] Without getting a hold of the administrator's authenticator hardware escalation should not be possible.
+    \item \textbf{FIDO2/WebAuthn:} For FIDO2 elevation of privilege attacks do not usually target the cryptographic protocol, but they may try to register their FIDO keys to a high privilege account, granting them access to rights they should not have.
+\end{itemize}

@@ -32,30 +32,7 @@ Login latency results are shown in Figure~\ref{fig:login-comparison}.
 
 \textbf{FIDO2 Login ($\approx$102 ms):} The server only has to perform a fast ECDSA signature verification\cite{barbosa2021provable}, making it much faster than bcrypt hashing.
 
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.5\textwidth]{figures/login-latency-comparison.pdf}
-\caption{Login latency comparison. Password and 2FA latencies are nearly identical due to the dominance of bcrypt hashing.}
-\label{fig:login-comparison}
-\end{figure}
-
-\subsection{Resource Usage}
-
-\subsubsection{Computational Overhead}
-Figure~\ref{fig:cpu-time-comparison} compares the server-side CPU time.
-
-\textbf{Password/2FA:} These methods are CPU intensive. Every login burns server cycles on bcrypt. This limits scalability under high load.
-
-\textbf{FIDO2:} This method is CPU efficient, since the heavy cryptography is offloaded to the user's device. The server only performs lightweight verification. \cite{lyastani2020kingslayer}.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.45\textwidth]{figures/cpu-time-comparison.pdf}
-\caption{Server-side CPU time comparison. FIDO2 significantly reduces server load by eliminating server-side hashing.}
-\label{fig:cpu-time-comparison}
-\end{figure}
-
-\subsubsection{Database Load}
+\subsection{Database Load}
 Database query analysis is shown in Figure~\ref{fig:db-queries-comparison}.
 
 \textbf{Registration:} Password and 2FA flows often require multiple steps. This results in more database queries. FIDO2 registration is streamlined. It requires fewer round-trips to the database.
