@@ -35,6 +35,7 @@ def test_db():
         TEST_DATABASE_URL,
         connect_args={"check_same_thread": False},
         poolclass=StaticPool,
+        echo=False,  # Set to True to see all SQL
     )
     Base.metadata.create_all(bind=engine)
     
@@ -48,6 +49,22 @@ def test_db():
     def receive_after_cursor_execute(conn, cursor, statement, parameters, context, executemany):
         """Track query execution time."""
         if hasattr(context, '_query_start_time'):
+            # Filter out transaction control, metadata, and SQLite internal queries
+            stmt_upper = statement.strip().upper()
+            # Skip transaction control
+            if stmt_upper.startswith(('BEGIN', 'COMMIT', 'ROLLBACK', 'PRAGMA', 'SAVEPOINT')):
+                return
+            # Skip SQLite metadata queries
+            if 'SQLITE_' in stmt_upper or stmt_upper.startswith('SELECT CAST'):
+                return
+            # Skip schema/table checks
+            if 'INFORMATION_SCHEMA' in stmt_upper or 'SHOW TABLES' in stmt_upper:
+                return
+
+            # Only count actual application queries: SELECT, INSERT, UPDATE, DELETE
+            if not stmt_upper.startswith(('SELECT', 'INSERT', 'UPDATE', 'DELETE')):
+                return
+
             elapsed_ms = (time.perf_counter() - context._query_start_time) * 1000
             increment_db_query(elapsed_ms)
     

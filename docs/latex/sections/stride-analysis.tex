@@ -1,62 +1,45 @@
 \section{STRIDE Analysis}\label{sec:stride-analysis}
-
+{\small
 This section aims to explain how each system should fare in each STRIDE category.
 \subsection{Spoofing}
-
-\begin{itemize}
+\begin{itemize}[itemsep=0pt, parsep=0pt]
     \item \textbf{Password-only:} Password-only systems are the most vulnerable to phishing attacks and credential stuffing, since they entirely rely on the user's better judgement, there is no origin binding, or relying on a safe third party.
-
     \item \textbf{2FA:} 2FA creates a much stronger barrier against phishing attacks, since it provides another wall of defence, in the form of a second factor. Depending on the type of this factor attackers can use different ways to bypass it mostly via Real Time Phishing (Relay Attacks), or Sim Swapping.
-
     \item \textbf{FIDO2/WebAuthn:} FIDO2's origin binding ensures that even if an attacker manages to phish the user, they can't redirect the user to a fake site, since the system would not accept the authentication request from a foreign RP ID.
 \end{itemize}
 
 \subsection{Tampering}
-
-\begin{itemize}
+\begin{itemize}[itemsep=0pt, parsep=0pt]
     \item \textbf{Password-only:} Usually password only systems offer no protection against message tampering beyond TLS. If TLS is compromised or misconfigured, an attacker can modify login requests or responses.
-
     \item \textbf{2FA:} 2FA TOTP systems also rely primarily on TLS for tampering protection. OTP codes can be be intercepted during transmission, for example in a relay attack where the attacker uses a proxy to phish the user's password and intercept the OTP code, then uses it to authenticate.
-
     \item \textbf{FIDO2/WebAuthn:} Since FIDO2 is a digitally signed challenge-response system, modification to the challenge or response invalidates the signature, making it virtually tamper-proof even if TLS is compromised.
 \end{itemize}
 
 \subsection{Repudiation}
-
-\begin{itemize}
+\begin{itemize}[itemsep=0pt, parsep=0pt]
     \item \textbf{Password-only:} There is no repudiation protection in a barebones password system, anyone with the password can authenticate and there is no way to link a particular login to a device or authenticator. Even logging can be manipulated since we can not be sure about the user's identity.
-
     \item \textbf{2FA:} 2FA can provide some repudiation protection by logging OTP usage, but these logs can modified by attackers who manage to gain high enough privileges. Proving the who performed the authentication is difficult in these systems, since cryptographic proof of which device generated the OTP code is not provided by the standard.
-
     \item \textbf{FIDO2/WebAuthn:} Since the private keys are stored on the authenticator, and these encapsulated systems manage them FIDO2 offers strong repudiation protection, because other devices can not copy this information. The signature counter also helps detect credential cloning attempts.
 \end{itemize}
 
 \subsection{Information Disclosure}
-
-\begin{itemize}
+\begin{itemize}[itemsep=0pt, parsep=0pt]
     \item \textbf{Password-only:} Password systems are the most vulnerable to information disclosure, since breaches can expose password hashes that can be later used for offline cracking, the passwords can also be intercepted during transmission.
-
     \item \textbf{2FA:} TOTP reduces information disclosure risk compared to passwords. The TOTP secret is stored server-side and never transmitted, but if the database is compromised bad actors may be able to generate valid codes.
-
     \item \textbf{FIDO2/WebAuthn:} In a FIDO2 system only public keys are stored server-side, and private keys never leave the authenticator, meaning that an attacker would not be able to access accounts and gain access to sensitive information.
 \end{itemize}
 
 \subsection{Denial of Service}
-
-\begin{itemize}
+\begin{itemize}[itemsep=0pt, parsep=0pt]
     \item \textbf{Password-only:} There are multiple DoS attack vectors for password systems, and bad actors might use brute-force to overwhelm the whole server, but there are certain types of DoS attacks that focus on attacking a single user via the server's security features like lockout mechanisms, where attackers might trigger lockouts by repeatedly attempting incorrect passwords, preventing legitimate users from accessing their accounts.
-
     \item \textbf{2FA:} 2FA systems inherit the vulnerability of password-only systems, the lockout mechanism may shift to the OTP code level, but the attackers can also exhaust backup codes, flood users with OTP requests.
-
     \item \textbf{FIDO2/WebAuthn:} Passwordless authentication is resilient to DoS attacks, its biggest vulnerability is the hardware doing the authentication, like wiping data from the authenticator in a CTRAPS attack, which factory resets private keys. On the server side there is no incentive to penalise users with lockouts, since there is no password for the attackers to guess.
 \end{itemize}
 
 \subsection{Elevation of Privilege}
-
-\begin{itemize}
+\begin{itemize}[itemsep=0pt, parsep=0pt]
     \item \textbf{Password-only:} Since administrative accounts without the proper precaution can fall victim to a multitude of attacks, bad actors can gain initial access to administrative accounts and elevate their privileges.
-
     \item \textbf{2FA:} 2FA and password only systems are similarly vulnerable to privilege elevation attacks, even though the additional factor makes them more difficult, with the proper safety measures in place seemingly impossible for attackers to gain access, the elevation of privilege is still possible with the aforementioned techniques.
-
     \item \textbf{FIDO2/WebAuthn:} For FIDO2 elevation of privilege attacks do not usually target the cryptographic protocol, but they may try to register their FIDO keys to a high privilege account, granting them access to rights they should not have.
 \end{itemize}
+}

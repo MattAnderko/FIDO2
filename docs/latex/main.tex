@@ -1,17 +1,25 @@
-\documentclass[conference]{IEEEtran}
+\documentclass[conference,compsoc]{IEEEtran}
 
 % --- Packages ---
 
+\usepackage{lmodern}
 \usepackage{graphicx}
 \usepackage{amsmath,amssymb}
 \usepackage{booktabs}
 \usepackage{listings}
+\usepackage{enumitem}
 \usepackage{hyperref}
-\usepackage{times}
-% Fix warning: Font shape `TU/ptm/b/n' undefined
-\DeclareFontShape{TU}{ptm}{b}{n}{<->ssub * ptm/bx/n}{}
 \usepackage{float}
 \hypersetup{hidelinks}
+
+% Reduce spacing around sections and subsections
+\usepackage{titlesec}
+\titlespacing*{\section}{0pt}{8pt plus 2pt minus 2pt}{4pt plus 2pt minus 2pt}
+\titlespacing*{\subsection}{0pt}{6pt plus 2pt minus 2pt}{3pt plus 2pt minus 2pt}
+
+% Make section and subsection titles smaller
+\titleformat*{\section}{\normalsize\bfseries}
+\titleformat*{\subsection}{\small\bfseries}
 
 % --- Document ---
 \begin{document}
@@ -28,13 +36,9 @@
 \begin{abstract}
 The FIDO2 standard, introduced by the FIDO Alliance and the World Wide Web Consortium (W3C) in 2018, it has been hailed as the "Kingslayer of User Authentication".
 This paper presents the implementation of a FIDO2 + WebAuthn authentication system and shows an analysis on different user authentication philosophies
-The analysis assesses a FIDO2, a 2FA and a password only system on their resistance to common security threats using the STRIDE threat modeling framework and evaluates performance based on latency, memory usage, and computational overhead.
-The objective is to determine how adopting FIDO2 influences the security, usability, and system resource requirements of information systems.
+The analysis assesses a FIDO2, a 2FA and a password only system on their resistance to common security threats using the STRIDE threat modeling framework and evaluates their performance.
+The objective is to determine how adopting FIDO2 influences the security and system resource requirements.
 \end{abstract}
-
-\begin{IEEEkeywords}
-FIDO2, WebAuthn, Passkeys, Passwordless authentication, Multi-factor authentication, STRIDE, Performance
-\end{IEEEkeywords}
 
 \input{sections/introduction}
 

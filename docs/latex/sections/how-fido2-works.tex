@@ -1,46 +1,26 @@
 \section{How FIDO2 Works}
-This section offers a quick introduction into the FIDO2 ecosystem.
-FIDO2 provides an phishing-resistant, origin-bound public-key authentication by combining the W3C WebAuthn API (browser/platform) with the FIDO Alliance CTAP protocol.
+This section offers a quick introduction into the FIDO2 ecosystem. FIDO2 can be described by combinging the W3C WebAuthn API with the CTAP protocol by FIDO~\cite{fido2-spec}, it's a public key based origin-bound authentication method.
 
 \subsection{Core Roles}
 \begin{enumerate}
-  \item \textbf{Relying Party (RP):} The application service that issues authentication challenges and stores each user's registered public key.
-  \item \textbf{Client/Platform:} The browser or operating system that brokers WebAuthn requests and responses between the RP and the authenticator.
-  \item \textbf{Authenticator:} A platform or roaming device that creates key pairs, enforces user presence/verification, and returns attested assertions.
+  \item \textbf{Relying Party (RP):} The service that requests authentication and stores the public key.
+  \item \textbf{Client:} The browser which mitigates communication between the RP and the authentication hardware.
+  \item \textbf{Authenticator:} The device (Like a Yubico key or Android Strongbox) that generates and stores private keys and asserts identity \cite{fido2-spec}.
 \end{enumerate}
 
-\subsection{Registration (makeCredential)}
-\begin{enumerate}
-  \item The RP provides options (challenge, RP ID, user handle, algorithm preferences) to the client.
-  \item The authenticator creates a new key pair based on the RP ID, the private key remains within the authenticator, keeping it safe from attackers, the public key and attestation statement are returned.
-  \item The RP verifies attestation and stores the credential public key.
-\end{enumerate}
-
-\subsection{Authentication (getAssertion)}
-\begin{enumerate}
-  \item The RP provides options (challenge, RP ID, and an allow list if applicable).
-  \item The authenticator enforces user presence/verification, then signs the challenge together with the RP ID hash, authenticator flags, and a signature counter.
-  \item The RP verifies origin, RP ID, signature, and counter before completing authentication.
-\end{enumerate}
-
-\subsection{Security Properties}
+\subsection{Cryptographic Mechanism}
+FIDO2 relies on public-key cryptography, there is no exchange of shared secrets like in a password based environment.
 \begin{itemize}
-    \item Origin binding (via RP ID and client data) mitigates phishing and relay.
-    \item Non-exportable keys reduce the impact of server-side compromise.
-    \item Attestation enables enforcement of device-class policy, lower class untrusted devices can be blocked.
+    \item \textbf{Registration:} The authenticator generates an asymmetric key pair inside a Secure Element. The \textbf{private key} never leaves the device, while the public key is sent to the RP.
+    \item \textbf{Authentication:} The RP issues a random challenge, then using the private key the authenticator signs this challenge, this creates a \textbf{digital signature} proving possession of the credential and verifies the origin without ever revealing the private key over the network \cite{fido2-spec}.
 \end{itemize}
+\subsection{Safety \& Security Architecture}
+There are multiple security features that make FIDO2 a strong standard \cite{fido2-spec}, like:
 
-\subsection{Real-World example}
-This example tries to convey how Android devices keep the data secure working with the FIDO2 ecosystem.
-On Android, passkeys and cryptographic keys are managed through Credential Manager and the Android Keystore. Where available, StrongBox places KeyMint in a discrete secure element so that keys are generated and stored within a dedicated secure processor rather than solely in the TEE. Private key material is non-exportable and invocable only via Keystore operations under enforced user-authentication and policy.
-
-\subsubsection{StrongBox isolation}
-StrongBox uses KeyMint in a separate secure chip. This chip has its own CPU,RAM and secure storage, completely isolating it from the mobile device, thus making it virtually impossible for bad-actors to access the private key stored here. I enables hardware attestation so servers can verify that keys are hardware-backed on a genuine device.
-
-\subsubsection{Example Flow}
 \begin{itemize}
-  \item The registration process begins through the Credential Manager (WebAuthn).
-  \item The Keystore requests a hardware-backed key; on devices with StrongBox, the key pair is generated within the StrongBox KeyMint and marked as non-exportable.
-  \item The public key and attestation chain are returned. The RP may verify the attestation to confirm hardware-backed security.
-  \item During authentication, StrongBox performs the signature after local user verification; the private key never leaves the secure processor.
+    \item \textbf{User Verification:} For the authenticator to proceed with "User Presence" is not enough, meaning that by stealing the hardware attackers won't be granted access, to login "User Verification" is needed, this could be biometrics or other method, like using a PIN.
+    
+    \item \textbf{Origin Binding:} The authenticator checks where the request comes from, making the standard phishing proof, because this origin can not be tampered, since that would break the digital signature.
+    
+    \item \textbf{Attestation:} During setup, the authenticator shows a digital manufacturing certificate to the server, for legitimacy verification
 \end{itemize}
